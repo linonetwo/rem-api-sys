@@ -1,5 +1,5 @@
 [package]
-name = "ctp_futures"
+name = "localctp-sys"
 version = "0.1.0"
 authors = ["xiaobing <pangxiaobing@gmail.com>"]
 edition = "2021"

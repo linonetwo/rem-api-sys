@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use bincode::{config, Decode, Encode};
-use ctp_futures::*;
+use localctp_sys::*;
 use futures::StreamExt;
 use log::info;
 use rust_share_util::*;
@@ -51,7 +51,7 @@ pub struct CtpQueryResult {
 }
 
 async fn query(ca: &CtpAccountConfig) {
-    use ctp_futures::trader_api::*;
+    use localctp_sys::trader_api::*;
     let broker_id = ca.broker_id.as_str();
     let account = ca.account.as_str();
     let trade_front = ca.trade_front.as_str();
@@ -65,7 +65,7 @@ async fn query(ca: &CtpAccountConfig) {
         request_id += 1;
         request_id
     };
-    let flow_path = format!(".cache/ctp_futures_trade_flow_{}_{}//", broker_id, account);
+    let flow_path = format!(".cache/localctp_sys_trade_flow_{}_{}//", broker_id, account);
     check_make_dir(&flow_path);
     let mut api = create_api(&flow_path, false);
     let mut stream = {
@@ -79,15 +79,15 @@ async fn query(ca: &CtpAccountConfig) {
         api.register_front(CString::new(trade_front).unwrap());
         info!("register front {}", trade_front);
     }
-    api.subscribe_public_topic(ctp_futures::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
-    api.subscribe_private_topic(ctp_futures::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    api.subscribe_public_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    api.subscribe_private_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
     api.init();
     let mut result = CtpQueryResult::default();
     result.broker_id = broker_id.to_string();
     result.account = account.to_string();
     // 处理登陆初始化查询
     while let Some(spi_msg) = stream.next().await {
-        use ctp_futures::trader_api::CThostFtdcTraderSpiOutput::*;
+        use localctp_sys::trader_api::CThostFtdcTraderSpiOutput::*;
         match spi_msg {
             OnFrontConnected(_p) => {
                 let mut req = CThostFtdcReqAuthenticateField::default();
@@ -267,7 +267,7 @@ async fn query(ca: &CtpAccountConfig) {
     let config = config::standard();
     let encoded: Vec<u8> = bincode::encode_to_vec(&result, config).unwrap();
     let save_path = std::path::Path::new(".cache")
-        .join("ctp_futures_query_result")
+        .join("localctp_sys_query_result")
         .join(format!("{}_{}", broker_id, account));
     info!("save_path = {:?}", save_path);
     check_make_dir(save_path.to_str().unwrap());

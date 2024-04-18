@@ -113,166 +113,6 @@ async fn query(ca: &CtpAccountConfig) {
                 api.req_authenticate(&mut req, get_request_id());
                 info!("OnFrontConnected");
             }
-            OnFrontDisconnected(p) => {
-                info!("on front disconnected {:?} 直接Exit ", p);
-                std::process::exit(-1);
-            }
-            OnRspAuthenticate(ref p) => {
-                if p.p_rsp_info.as_ref().unwrap().ErrorID == 0 {
-                    let mut req = CThostFtdcReqUserLoginField::default();
-                    set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
-                    set_cstr_from_str_truncate_i8(&mut req.UserID, account);
-                    set_cstr_from_str_truncate_i8(&mut req.Password, password);
-                    api.req_user_login(&mut req, get_request_id());
-                } else {
-                    info!("RspAuthenticate={:?}", p);
-                    std::process::exit(-1);
-                }
-            }
-            OnRspUserLogin(ref p) => {
-                if p.p_rsp_info.as_ref().unwrap().ErrorID == 0 {
-                    let u = p.p_rsp_user_login.unwrap();
-                    result.trading_day = trading_day_from_ctp_trading_day(&u.TradingDay);
-                } else {
-                    info!("Trade RspUserLogin = {:?}", print_rsp_info!(&p.p_rsp_info));
-                }
-                let mut req = CThostFtdcSettlementInfoConfirmField::default();
-                set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
-                set_cstr_from_str_truncate_i8(&mut req.InvestorID, account);
-                let result = api.req_settlement_info_confirm(&mut req, get_request_id());
-                if result != 0 {
-                    info!("ReqSettlementInfoConfirm={}", result);
-                }
-            }
-            OnRspSettlementInfoConfirm(ref _p) => {
-                let mut req = CThostFtdcQryTradingAccountField::default();
-                set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
-                set_cstr_from_str_truncate_i8(&mut req.InvestorID, account);
-                let result = api.req_qry_trading_account(&mut req, get_request_id());
-                if result != 0 {
-                    info!("ReqQueryTradingAccount={}", result);
-                }
-            }
-            OnRspQryTradingAccount(ref p) => {
-                if let Some(taf) = p.p_trading_account {
-                    result.trading_account = taf;
-                    info!(
-                        "查询账户资金完成.  account={} trading_day={} balance={}",
-                        gb18030_cstr_to_str_i8(&taf.AccountID),
-                        gb18030_cstr_to_str_i8(&taf.TradingDay),
-                        taf.Balance
-                    );
-                }
-                if p.b_is_last {
-                    let mut req = CThostFtdcQryInvestorPositionDetailField::default();
-                    set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
-                    set_cstr_from_str_truncate_i8(&mut req.InvestorID, account);
-                    // flow control query limitation
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                    let result = api.req_qry_investor_position_detail(&mut req, get_request_id());
-                    if result != 0 {
-                        info!("ReqQryInvestorPositionDetail = {:?}", result);
-                    }
-                }
-            }
-            OnRspQryInvestorPositionDetail(ref detail) => {
-                if let Some(d) = detail.p_investor_position_detail {
-                    result.position_detail_list.push(d);
-                }
-                if detail.b_is_last {
-                    info!(
-                        "查询持仓明细完成, len={}",
-                        result.position_detail_list.len()
-                    );
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                    let mut req = CThostFtdcQryInvestorPositionField::default();
-                    set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
-                    set_cstr_from_str_truncate_i8(&mut req.InvestorID, account);
-                    let result = api.req_qry_investor_position(&mut req, get_request_id());
-                    if result != 0 {
-                        info!("ReqQueryPosition={}", result);
-                    }
-                }
-            }
-            OnRspQryInvestorPosition(ref p) => {
-                if let Some(p) = p.p_investor_position {
-                    result.position_list.push(p);
-                }
-                if p.b_is_last {
-                    info!("查询持仓完成, len={}", result.position_list.len());
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                    let mut req = CThostFtdcQryInstrumentField::default();
-                    let result = api.req_qry_instrument(&mut req, get_request_id());
-                    if result != 0 {
-                        info!("ReqQryInstrument = {:?}", result);
-                    }
-                }
-            }
-            OnRspQryInstrument(ref p) => {
-                if let Some(instrument) = p.p_instrument {
-                    result.instrument_list.push(instrument);
-                }
-                if p.b_is_last {
-                    // 查询行情
-                    info!("查询合约完成, len={}", result.instrument_list.len());
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                    let mut req = CThostFtdcQryDepthMarketDataField::default();
-                    let result = api.req_qry_depth_market_data(&mut req, get_request_id());
-                    if result != 0 {
-                        info!("ReqQryDepthMarketData= {:?}", result);
-                    }
-                }
-            }
-            OnRspQryDepthMarketData(ref p) => {
-                if let Some(md) = p.p_depth_market_data {
-                    result.dmd_list.push(md);
-                }
-                if p.b_is_last {
-                    info!("查询行情完成 len={}", result.dmd_list.len());
-                    let mut req = CThostFtdcQryOrderField::default();
-                    set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
-                    set_cstr_from_str_truncate_i8(&mut req.InvestorID, account);
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                    let result = api.req_qry_order(&mut req, get_request_id());
-                    if result != 0 {
-                        info!("ReqQryOrder = {:?}", result);
-                    }
-                }
-            }
-
-            OnRspQryOrder(ref p) => {
-                if let Some(order) = p.p_order {
-                    result.order_list.push(order);
-                }
-
-                if p.b_is_last {
-                    info!("查询委托完成 len={}", result.order_list.len());
-                    let mut req = CThostFtdcQryTradeField::default();
-                    set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
-                    set_cstr_from_str_truncate_i8(&mut req.InvestorID, account);
-                    tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                    let result = api.req_qry_trade(&mut req, get_request_id());
-                    if result != 0 {
-                        info!("ReqQryTrade = {:?}", result);
-                    }
-                }
-            }
-            OnRspQryTrade(ref p) => {
-                if let Some(trade) = p.p_trade {
-                    result.trade_list.push(trade);
-                }
-                if p.b_is_last {
-                    info!("查询成交明细完成 len={}", result.trade_list.len());
-                    break;
-                }
-            }
-            OnRspQryInstrumentCommissionRate(ref p) => {
-                // 未处理
-                if let Some(icr) = p.p_instrument_commission_rate {
-                    result.icr_list.push(icr);
-                }
-                if p.b_is_last {}
-            }
 
             _ => {}
         }
@@ -303,4 +143,29 @@ async fn query(ca: &CtpAccountConfig) {
     api.release();
     Box::leak(api);
     info!("完成保存查询结果");
+    info!("开始输入行情");
+    let mut interval = time::interval(Duration::from_millis(500));
+    loop {
+        interval.tick().await;
+        let mut rng = rand::thread_rng();
+
+        let mut market_data = CThostFtdcInputQuoteField::default();
+        market_data.BidPrice = rng.gen_range(1000.0..2000.0);
+        market_data.AskPrice = market_data.BidPrice + rng.gen_range(5.0..20.0); // Ensures ask price is always higher than bid price
+        market_data.InstrumentID = CString::new("MA403").unwrap().into_raw();
+        market_data.QuoteRef = CString::new(format!("{:.1}", rng.gen_range(1000.0..2000.0))).unwrap().into_raw();
+        market_data.UserID = CString::new(format!("{:.1}", rng.gen_range(4900.0..5100.0))).unwrap().into_raw();
+        market_data.ForQuoteSysID = CString::new(format!("{:.1}", rng.gen_range(4900.0..5100.0))).unwrap().into_raw();
+        market_data.BidOrderRef = CString::new(format!("{:.1}", rng.gen_range(9500.0..10000.0))).unwrap().into_raw();
+        market_data.AskOrderRef = CString::new(format!("{:.1}", rng.gen_range(400.0..600.0))).unwrap().into_raw();
+        market_data.BusinessUnit = CString::new(format!("{:.1}", rng.gen::<u32>())).unwrap().into_raw();
+        let volume = rng.gen::<i32>();
+
+        unsafe {
+            api.req_quote_insert(&mut market_data as *mut _, volume);
+        }
+
+        // To prevent memory leaks, make sure to free the CString memory if necessary
+        // This example assumes ownership issues are handled elsewhere or API is adjusted accordingly
+    }
 }

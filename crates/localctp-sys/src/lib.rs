@@ -52,6 +52,64 @@ pub mod trader_api {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct FakeMarketQuote {
+    pub instrument_id: String,
+    pub bid_price: f64,
+    pub ask_price: f64,
+    pub quote_ref: String,
+    pub last_price: String,
+    pub settlement_price: String,
+    pub upper_limit_price: String,
+    pub lower_limit_price: String,
+    pub business_unit: String,
+    pub volume: i32,
+}
+
+impl CThostFtdcTraderApi {
+    pub fn insert_market_quote(&mut self, quote: FakeMarketQuote) -> Result<(), std::ffi::NulError> {
+        let mut quote_field = CThostFtdcInputQuoteField::default();
+
+        // Helper function to copy CString into a fixed-size array
+        fn copy_to_fixed_array(target: &mut [i8], source: &std::ffi::CString) {
+            let bytes = source.as_bytes_with_nul();
+            let len = bytes.len().min(target.len());
+            target[..len].copy_from_slice(&bytes[..len]);
+            if len < target.len() {
+                target[len..].fill(0);  // Zero-fill the rest of the array
+            }
+        }
+
+        let instrument_id_cstring = std::ffi::CString::new(quote.instrument_id)?;
+        copy_to_fixed_array(&mut quote_field.InstrumentID, &instrument_id_cstring);
+
+        quote_field.BidPrice = quote.bid_price;
+        quote_field.AskPrice = quote.ask_price;
+
+        let quote_ref_cstring = std::ffi::CString::new(quote.quote_ref)?;
+        copy_to_fixed_array(&mut quote_field.QuoteRef, &quote_ref_cstring);
+
+        let last_price_cstring = std::ffi::CString::new(quote.last_price)?;
+        copy_to_fixed_array(&mut quote_field.UserID, &last_price_cstring);
+
+        let settlement_price_cstring = std::ffi::CString::new(quote.settlement_price)?;
+        copy_to_fixed_array(&mut quote_field.ForQuoteSysID, &settlement_price_cstring);
+
+        let upper_limit_price_cstring = std::ffi::CString::new(quote.upper_limit_price)?;
+        copy_to_fixed_array(&mut quote_field.BidOrderRef, &upper_limit_price_cstring);
+
+        let lower_limit_price_cstring = std::ffi::CString::new(quote.lower_limit_price)?;
+        copy_to_fixed_array(&mut quote_field.AskOrderRef, &lower_limit_price_cstring);
+
+        let business_unit_cstring = std::ffi::CString::new(quote.business_unit)?;
+        copy_to_fixed_array(&mut quote_field.BusinessUnit, &business_unit_cstring);
+
+        self.req_quote_insert(&mut quote_field, quote.volume);
+
+        Ok(())
+    }
+}
+
 #[derive(Debug, derive_more::Display, derive_more::From)]
 pub enum Error {
     InvalidCtpInstrumentId,

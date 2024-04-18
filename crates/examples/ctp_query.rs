@@ -14,6 +14,20 @@ pub fn init_logger() {
     tracing_subscriber::fmt::init();
 }
 
+#[derive(Clone, Debug)]
+pub struct CtpAccountConfig {
+    pub broker_id: String,
+    pub account: String,
+    pub trade_fronts: Vec<String>,
+    pub md_fronts: Vec<String>,
+    pub name_servers: Vec<String>,
+    pub auth_code: String,
+    pub user_product_info: String,
+    pub app_id: String,
+    pub password: String,
+    pub remark: String,
+}
+
 #[tokio::main]
 async fn main() {
     init_logger();
@@ -54,8 +68,8 @@ async fn query(ca: &CtpAccountConfig) {
     use localctp_sys::trader_api::*;
     let broker_id = ca.broker_id.as_str();
     let account = ca.account.as_str();
-    let trade_front = ca.trade_front.as_str();
-    let name_server = ca.name_server.as_str();
+    let trade_front = ca.trade_fronts[0].as_str();
+    let name_server = ca.name_servers[0].as_str();
     let auth_code = ca.auth_code.as_str();
     let user_product_info = ca.user_product_info.as_str();
     let app_id = ca.app_id.as_str();

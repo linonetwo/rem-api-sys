@@ -20,5 +20,13 @@ chmod +x scripts/update_localctp.sh
 ## 运行示例
 
 ```sh
-cargo build --example ctp_query
+cargo run --example ctp_query
+```
+
+### `error while loading shared libraries: libthostmduserapi_se.so: cannot open shared object file: No such file or directory`
+
+```sh
+sudo ln -s crates/localctp-sys/v_current/libthosttraderapi_se.so /usr/local/lib/
+sudo ln -s crates/localctp-sys/v_current/libthostmduserapi_se.so /usr/local/lib/
+sudo ldconfig
 ```

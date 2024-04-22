@@ -1,6 +1,7 @@
-use std::io::Write;
-use tokio::time::{self, Duration};
-use rand::Rng;
+use std::{io::Write, sync::Arc};
+use tokio::{sync::Mutex, time::{self, Duration}};
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 use bincode::{config, Decode, Encode};
 use futures::StreamExt;
 use log::info;
@@ -32,7 +33,7 @@ pub struct CtpAccountConfig {
 
 async fn simulate_market_data(api: &mut CThostFtdcTraderApi) {
     let mut interval = time::interval(Duration::from_millis(500));
-    let mut rng = rand::thread_rng();
+    let mut rng = StdRng::from_entropy();  // Using a thread-safe RNG that can be sent across threads
 
     loop {
         interval.tick().await;
@@ -100,7 +101,7 @@ async fn query(ca: &CtpAccountConfig) {
     let auth_code = ca.auth_code.as_str();
     let user_product_info = ca.user_product_info.as_str();
     let app_id = ca.app_id.as_str();
-    let password = ca.password.as_str();
+    // let password = ca.password.as_str();
     let mut request_id: i32 = 0;
     let mut get_request_id = || {
         request_id += 1;
@@ -108,23 +109,30 @@ async fn query(ca: &CtpAccountConfig) {
     };
     let flow_path = format!(".cache/localctp_sys_trade_flow_{}_{}//", broker_id, account);
     check_make_dir(&flow_path);
-    let mut api = create_api(&flow_path, false);
+    let mut raw_api = create_api(&flow_path, false);
     let mut stream = {
         let (stream, pp) = create_spi();
-        api.register_spi(pp);
+        raw_api.register_spi(pp);
         stream
     };
     if name_server.len() > 0 {
-        api.register_name_server(CString::new(name_server).unwrap());
+        raw_api.register_name_server(CString::new(name_server).unwrap());
     } else {
-        api.register_front(CString::new(trade_front).unwrap());
+        raw_api.register_front(CString::new(trade_front).unwrap());
         info!("register front {}", trade_front);
     }
-    api.subscribe_public_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
-    api.subscribe_private_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
-    api.init();
+    raw_api.subscribe_public_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    raw_api.subscribe_private_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    raw_api.init();
     info!("开始输入行情");
-    simulate_market_data(&mut api).await;
+    // Wrap the API in Arc and Mutex for shared ownership and thread safety
+    let shared_api = Arc::new(Mutex::new(create_api(&flow_path, false)));
+    // Clone the API handle for the spawned task
+    let api_clone = shared_api.clone();
+    tokio::spawn(async move {
+        let mut api = api_clone.lock().await;
+        simulate_market_data(&mut *api).await;
+    });
     let mut result = CtpQueryResult::default();
     result.broker_id = broker_id.to_string();
     result.account = account.to_string();
@@ -139,7 +147,7 @@ async fn query(ca: &CtpAccountConfig) {
                 set_cstr_from_str_truncate_i8(&mut req.AuthCode, auth_code);
                 set_cstr_from_str_truncate_i8(&mut req.UserProductInfo, user_product_info);
                 set_cstr_from_str_truncate_i8(&mut req.AppID, app_id);
-                api.req_authenticate(&mut req, get_request_id());
+                raw_api.req_authenticate(&mut req, get_request_id());
                 info!("OnFrontConnected");
             }
 
@@ -169,7 +177,7 @@ async fn query(ca: &CtpAccountConfig) {
         .to_str()
         .unwrap();
     info!("version={ver}");
-    api.release();
-    Box::leak(api);
+    raw_api.release();
+    Box::leak(raw_api);
     info!("完成保存查询结果");
 }

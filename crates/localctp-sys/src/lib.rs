@@ -72,9 +72,12 @@ impl CThostFtdcTraderApi {
 
         // Helper function to copy CString into a fixed-size array
         fn copy_to_fixed_array(target: &mut [i8], source: &std::ffi::CString) {
-            let bytes = source.as_bytes_with_nul();
+            let bytes = source.as_bytes_with_nul();  // Gets a slice of u8
             let len = bytes.len().min(target.len());
-            target[..len].copy_from_slice(&bytes[..len]);
+            // Convert u8 to i8 and copy to target array
+            for (i, &byte) in bytes.iter().enumerate().take(len) {
+                target[i] = byte as i8;  // Convert u8 to i8
+            }
             if len < target.len() {
                 target[len..].fill(0);  // Zero-fill the rest of the array
             }

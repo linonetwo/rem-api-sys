@@ -2,7 +2,7 @@
 
 ## localctp-sys
 
-使用 Git submodule 加载 https://github.com/dearleeyoung/LocalCTP 
+使用 Git submodule 加载 `https://github.com/dearleeyoung/LocalCTP`
 
 ```sh
 git submodule update --recursive && git submodule update --remote
@@ -15,4 +15,10 @@ git submodule update --recursive && git submodule update --remote
 ```sh
 chmod +x scripts/update_localctp.sh
 ./scripts/update_localctp.sh
+```
+
+## 运行示例
+
+```sh
+cargo build --example ctp_query
 ```

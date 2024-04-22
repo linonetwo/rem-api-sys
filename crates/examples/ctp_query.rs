@@ -1,11 +1,13 @@
 use std::io::Write;
-
+use tokio::time::{self, Duration};
+use rand::Rng;
 use bincode::{config, Decode, Encode};
-use localctp_sys::*;
 use futures::StreamExt;
 use log::info;
-use rust_share_util::*;
 use std::ffi::{CStr, CString};
+
+use localctp_sys::*;
+use rust_share_util::*;
 
 pub fn init_logger() {
     if std::env::var("RUST_LOG").is_err() {
@@ -26,6 +28,31 @@ pub struct CtpAccountConfig {
     pub app_id: String,
     pub password: String,
     pub remark: String,
+}
+
+async fn simulate_market_data(api: &mut CThostFtdcTraderApi) {
+    let mut interval = time::interval(Duration::from_millis(500));
+    let mut rng = rand::thread_rng();
+
+    loop {
+        interval.tick().await;
+        let market_quote = FakeMarketQuote {
+            instrument_id: "MA403".to_string(),
+            bid_price: rng.gen_range(1000.0..2000.0),
+            ask_price: rng.gen_range(1000.0..2000.0),
+            quote_ref: format!("{:.1}", rng.gen::<f64>() * 1000.0),
+            last_price: format!("{:.2}", rng.gen::<f64>() * 5000.0),
+            settlement_price: format!("{:.2}", rng.gen::<f64>() * 5000.0),
+            upper_limit_price: format!("{:.2}", rng.gen::<f64>() * 6000.0),
+            lower_limit_price: format!("{:.2}", rng.gen::<f64>() * 4000.0),
+            business_unit: format!("{:08}", rng.gen::<u32>()),
+            volume: rng.gen_range(1..100),
+        };
+
+        if let Err(e) = api.insert_market_quote(market_quote) {
+            eprintln!("Error inserting market quote: {:?}", e);
+        }
+    }
 }
 
 #[tokio::main]
@@ -96,6 +123,8 @@ async fn query(ca: &CtpAccountConfig) {
     api.subscribe_public_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
     api.subscribe_private_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
     api.init();
+    info!("开始输入行情");
+    simulate_market_data(&mut api).await;
     let mut result = CtpQueryResult::default();
     result.broker_id = broker_id.to_string();
     result.account = account.to_string();
@@ -143,29 +172,4 @@ async fn query(ca: &CtpAccountConfig) {
     api.release();
     Box::leak(api);
     info!("完成保存查询结果");
-    info!("开始输入行情");
-    let mut interval = time::interval(Duration::from_millis(500));
-    loop {
-        interval.tick().await;
-        let mut rng = rand::thread_rng();
-
-        let mut market_data = CThostFtdcInputQuoteField::default();
-        market_data.BidPrice = rng.gen_range(1000.0..2000.0);
-        market_data.AskPrice = market_data.BidPrice + rng.gen_range(5.0..20.0); // Ensures ask price is always higher than bid price
-        market_data.InstrumentID = CString::new("MA403").unwrap().into_raw();
-        market_data.QuoteRef = CString::new(format!("{:.1}", rng.gen_range(1000.0..2000.0))).unwrap().into_raw();
-        market_data.UserID = CString::new(format!("{:.1}", rng.gen_range(4900.0..5100.0))).unwrap().into_raw();
-        market_data.ForQuoteSysID = CString::new(format!("{:.1}", rng.gen_range(4900.0..5100.0))).unwrap().into_raw();
-        market_data.BidOrderRef = CString::new(format!("{:.1}", rng.gen_range(9500.0..10000.0))).unwrap().into_raw();
-        market_data.AskOrderRef = CString::new(format!("{:.1}", rng.gen_range(400.0..600.0))).unwrap().into_raw();
-        market_data.BusinessUnit = CString::new(format!("{:.1}", rng.gen::<u32>())).unwrap().into_raw();
-        let volume = rng.gen::<i32>();
-
-        unsafe {
-            api.req_quote_insert(&mut market_data as *mut _, volume);
-        }
-
-        // To prevent memory leaks, make sure to free the CString memory if necessary
-        // This example assumes ownership issues are handled elsewhere or API is adjusted accordingly
-    }
 }

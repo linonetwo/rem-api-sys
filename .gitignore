@@ -3,3 +3,4 @@ target
 Cargo.lock
 configs/test.json
 scripts/run_tora_gw.sh
+LocalCTP.db

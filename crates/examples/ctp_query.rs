@@ -58,7 +58,8 @@ async fn simulate_market_data(api: &mut CThostFtdcTraderApi) {
 
 #[tokio::main]
 async fn main() {
-    init_logger();
+    // FIXME: 启用 log 导致报错
+    // init_logger();
     // let trade_front = "tcp://180.168.146.187:10130"; // 7*24
     let account = CtpAccountConfig {
         broker_id: "9999".to_string(),

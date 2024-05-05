@@ -1,3 +1,3 @@
 [submodule "LocalCTP"]
 	path = LocalCTP
-	url = https://github.com/dearleeyoung/LocalCTP.git
+	url = https://gitlab.git.apricottavern.site/infra/localctp.git

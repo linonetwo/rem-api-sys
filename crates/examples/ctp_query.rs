@@ -1,11 +1,14 @@
-use std::{io::Write, sync::Arc};
-use tokio::{sync::Mutex, time::{self, Duration}};
-use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng};
 use bincode::{config, Decode, Encode};
 use futures::StreamExt;
 use log::info;
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 use std::ffi::{CStr, CString};
+use std::{io::Write, sync::Arc};
+use tokio::{
+    sync::Mutex,
+    time::{self, Duration},
+};
 
 use localctp_sys::*;
 use rust_share_util::*;
@@ -33,7 +36,7 @@ pub struct CtpAccountConfig {
 
 async fn simulate_market_data(api: &mut CThostFtdcTraderApi) {
     let mut interval = time::interval(Duration::from_millis(500));
-    let mut rng = StdRng::from_entropy();  // Using a thread-safe RNG that can be sent across threads
+    let mut rng = StdRng::from_entropy(); // Using a thread-safe RNG that can be sent across threads
 
     loop {
         interval.tick().await;
@@ -54,6 +57,35 @@ async fn simulate_market_data(api: &mut CThostFtdcTraderApi) {
             eprintln!("Error inserting market quote: {:?}", e);
         }
     }
+}
+
+async fn insert_limit_order(api: &mut CThostFtdcTraderApi) {
+    // Initialize the order input with default values
+    let mut order_input = CThostFtdcInputOrderField::default();
+
+    // Set values directly into the order input structure
+    set_cstr_from_str_truncate_i8(&mut order_input.ExchangeID, "fake_exchange_id");
+    set_cstr_from_str_truncate_i8(&mut order_input.InstrumentID, "fake_instrument_id");
+    set_cstr_from_str_truncate_i8(&mut order_input.OrderRef, "test_order_ref_1");
+
+    order_input.LimitPrice = 1000.0;
+    order_input.VolumeTotalOriginal = 100;
+    order_input.OrderPriceType = THOST_FTDC_OPT_LimitPrice as i8; // Limit order
+    order_input.Direction = 48; // '0' ASCII for Buy
+    order_input.CombOffsetFlag[0] = '0' as i8; // '0' for Open
+    set_cstr_from_str_truncate_i8(&mut order_input.CombHedgeFlag, "1"); // Hedge flag set to '1'
+
+    order_input.IsAutoSuspend = 0;
+    order_input.IsSwapOrder = 0;
+    order_input.TimeCondition = THOST_FTDC_TC_GFD as i8; // Good for day
+    order_input.VolumeCondition = THOST_FTDC_VC_AV as i8; // Any volume
+    order_input.ContingentCondition = THOST_FTDC_CC_Immediately as i8;
+    order_input.ForceCloseReason = THOST_FTDC_FCC_NotForceClose as i8;
+
+    // Call the API to insert the order
+    let ret = api.req_order_insert(&mut order_input, 0); // Using 0 as a placeholder
+    // DEBUG: println ret
+    println!("ret {:#?}", ret);
 }
 
 #[tokio::main]
@@ -134,6 +166,7 @@ async fn query(ca: &CtpAccountConfig) {
         let mut api = api_clone.lock().await;
         simulate_market_data(&mut *api).await;
     });
+    insert_limit_order(&mut raw_api).await;
     let mut result = CtpQueryResult::default();
     result.broker_id = broker_id.to_string();
     result.account = account.to_string();

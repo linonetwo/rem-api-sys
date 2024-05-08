@@ -1,8 +1,12 @@
+use base::state::{
+    DirectionType, InputOrderActionField, InputOrderField, OffsetFlag, TraderApiType,
+};
 use bincode::{config, Decode, Encode};
 use futures::StreamExt;
 use log::info;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
+use route;
 use std::ffi::{CStr, CString};
 use std::{io::Write, sync::Arc};
 use tokio::{
@@ -59,33 +63,87 @@ async fn simulate_market_data(api: &mut CThostFtdcTraderApi) {
     }
 }
 
-async fn insert_limit_order(api: &mut CThostFtdcTraderApi) {
+async fn revoke_limit_order(api: &mut dyn TraderApiType, account_config: &CtpAccountConfig) {
+    // Define the necessary parameters for a limit order
+    let broker_id = &account_config.broker_id;
+    let account = &account_config.account;
+    let exchange = "SHFE"; // Shanghai Futures Exchange, adjust as needed
+    let symbol = "cu2101"; // Example futures contract for copper, adjust as needed
+    let price = 50000.0; // Example price, adjust as needed
+    let volume = 1; // Example volume, adjust as needed
+    let order_ref = 123; // This should be a unique reference for the order, possibly incrementing
+    let n_request_id = 1; // Request ID, unique per request
+
     // Initialize the order input with default values
-    let mut order_input = CThostFtdcInputOrderField::default();
-
-    // Set values directly into the order input structure
-    set_cstr_from_str_truncate_i8(&mut order_input.ExchangeID, "fake_exchange_id");
-    set_cstr_from_str_truncate_i8(&mut order_input.InstrumentID, "fake_instrument_id");
-    set_cstr_from_str_truncate_i8(&mut order_input.OrderRef, "test_order_ref_1");
-
-    order_input.LimitPrice = 1000.0;
-    order_input.VolumeTotalOriginal = 100;
-    order_input.OrderPriceType = THOST_FTDC_OPT_LimitPrice as i8; // Limit order
-    order_input.Direction = 48; // '0' ASCII for Buy
-    order_input.CombOffsetFlag[0] = '0' as i8; // '0' for Open
-    set_cstr_from_str_truncate_i8(&mut order_input.CombHedgeFlag, "1"); // Hedge flag set to '1'
-
-    order_input.IsAutoSuspend = 0;
-    order_input.IsSwapOrder = 0;
-    order_input.TimeCondition = THOST_FTDC_TC_GFD as i8; // Good for day
-    order_input.VolumeCondition = THOST_FTDC_VC_AV as i8; // Any volume
-    order_input.ContingentCondition = THOST_FTDC_CC_Immediately as i8;
-    order_input.ForceCloseReason = THOST_FTDC_FCC_NotForceClose as i8;
+    let order_input = InputOrderField {
+        direction: DirectionType::Long, // Buying, adjust as needed (Long or Short)
+        offset: OffsetFlag::Open,       // Order is to open a position, adjust as needed
+        price,
+        volume,
+    };
 
     // Call the API to insert the order
-    let ret = api.req_order_insert(&mut order_input, 0); // Using 0 as a placeholder
-    // DEBUG: println ret
-    println!("ret {:#?}", ret);
+    println!("insert_limit_order request {:#?}", order_input);
+    let mut x_order_ref = [0i8; 13];
+    set_cstr_from_str_truncate_i8(&mut x_order_ref, format!("{order_ref}").as_str());
+    let input_order_action = InputOrderActionField {
+        front_id: 1,   // Example ID, should be set according to your system's management of IDs
+        session_id: 1, // Example Session ID
+        // order_ref: set_cstr_from_str_truncate_i8("your_order_ref"), // Your order reference
+        order_ref: x_order_ref,
+    };
+    let result = api.req_order_action(
+        "broker_id",
+        "account_id",
+        "exchange",
+        "symbol",
+        &input_order_action,
+        123, // order_action_ref, if applicable
+        1,   // n_request_id
+    );
+
+    match result {
+        Ok(_) => println!("Order action successfully requested."),
+        Err(e) => eprintln!("Failed to request order action: {:?}", e),
+    }
+}
+
+async fn insert_limit_order(api: &mut dyn TraderApiType, account_config: &CtpAccountConfig) {
+    // Define the necessary parameters for a limit order
+    let broker_id = &account_config.broker_id;
+    let account = &account_config.account;
+    let exchange = "SHFE"; // Shanghai Futures Exchange, adjust as needed
+    let symbol = "cu2101"; // Example futures contract for copper, adjust as needed
+    let price = 50000.0; // Example price, adjust as needed
+    let volume = 1; // Example volume, adjust as needed
+    let order_ref = 123; // This should be a unique reference for the order, possibly incrementing
+    let n_request_id = 1; // Request ID, unique per request
+
+    // Initialize the order input with default values
+    let order_input = InputOrderField {
+        direction: DirectionType::Long, // Buying, adjust as needed (Long or Short)
+        offset: OffsetFlag::Open,       // Order is to open a position, adjust as needed
+        price,
+        volume,
+    };
+
+    // Call the req_order_insert method on the API object
+    let result = api.req_order_insert(
+        broker_id,
+        account,
+        exchange,
+        symbol,
+        &order_input,
+        order_ref,
+        n_request_id,
+        &vec![], // Assuming _shareholder_accounts is not used in your example
+    );
+
+    // Check the result of the order insertion
+    match result {
+        Ok(_) => println!("Order successfully inserted."),
+        Err(e) => println!("Error inserting order: {:?}", e),
+    }
 }
 
 #[tokio::main]
@@ -125,15 +183,15 @@ pub struct CtpQueryResult {
     trade_list: Vec<CThostFtdcTradeField>,
 }
 
-async fn query(ca: &CtpAccountConfig) {
+async fn query(ctp_account: &CtpAccountConfig) {
     use localctp_sys::trader_api::*;
-    let broker_id = ca.broker_id.as_str();
-    let account = ca.account.as_str();
-    let trade_front = ca.trade_fronts[0].as_str();
-    let name_server = ca.name_servers[0].as_str();
-    let auth_code = ca.auth_code.as_str();
-    let user_product_info = ca.user_product_info.as_str();
-    let app_id = ca.app_id.as_str();
+    let broker_id = ctp_account.broker_id.as_str();
+    let account = ctp_account.account.as_str();
+    let trade_front = ctp_account.trade_fronts[0].as_str();
+    let name_server = ctp_account.name_servers[0].as_str();
+    let auth_code = ctp_account.auth_code.as_str();
+    let user_product_info = ctp_account.user_product_info.as_str();
+    let app_id = ctp_account.app_id.as_str();
     // let password = ca.password.as_str();
     let mut request_id: i32 = 0;
     let mut get_request_id = || {
@@ -142,35 +200,31 @@ async fn query(ca: &CtpAccountConfig) {
     };
     let flow_path = format!(".cache/localctp_sys_trade_flow_{}_{}//", broker_id, account);
     check_make_dir(&flow_path);
-    let mut raw_api = create_api(&flow_path, false);
+    let mut api_box = create_api(&flow_path, false);
     let mut stream = {
         let (stream, pp) = create_spi();
-        raw_api.register_spi(pp);
+        api_box.register_spi(pp);
         stream
     };
     if name_server.len() > 0 {
-        raw_api.register_name_server(CString::new(name_server).unwrap());
+        api_box.register_name_server(CString::new(name_server).unwrap());
     } else {
-        raw_api.register_front(CString::new(trade_front).unwrap());
+        api_box.register_front(CString::new(trade_front).unwrap());
         info!("register front {}", trade_front);
     }
-    raw_api.subscribe_public_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
-    raw_api.subscribe_private_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
-    raw_api.init();
-    info!("开始输入行情");
-    // Wrap the API in Arc and Mutex for shared ownership and thread safety
-    let shared_api = Arc::new(Mutex::new(create_api(&flow_path, false)));
-    // Clone the API handle for the spawned task
-    let api_clone = shared_api.clone();
-    tokio::spawn(async move {
-        let mut api = api_clone.lock().await;
-        simulate_market_data(&mut *api).await;
-    });
-    insert_limit_order(&mut raw_api).await;
+    api_box.subscribe_public_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    api_box.subscribe_private_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    api_box.init();
     let mut result = CtpQueryResult::default();
     result.broker_id = broker_id.to_string();
     result.account = account.to_string();
     // 处理登陆初始化查询
+    // 登录后才能发单
+    // let mut login_req = CThostFtdcReqUserLoginField::default();
+    // set_cstr_from_str_truncate_i8(&mut login_req.BrokerID, &ctp_account.broker_id);
+    // set_cstr_from_str_truncate_i8(&mut login_req.UserID, &ctp_account.account);
+    // set_cstr_from_str_truncate_i8(&mut login_req.Password, &ctp_account.password);
+    // api_box.req_user_login(&mut login_req, 1);
     while let Some(spi_msg) = stream.next().await {
         use localctp_sys::trader_api::CThostFtdcTraderSpiOutput::*;
         match spi_msg {
@@ -181,37 +235,37 @@ async fn query(ca: &CtpAccountConfig) {
                 set_cstr_from_str_truncate_i8(&mut req.AuthCode, auth_code);
                 set_cstr_from_str_truncate_i8(&mut req.UserProductInfo, user_product_info);
                 set_cstr_from_str_truncate_i8(&mut req.AppID, app_id);
-                raw_api.req_authenticate(&mut req, get_request_id());
+                api_box.req_authenticate(&mut req, get_request_id());
                 info!("OnFrontConnected");
             }
-
+            OnRspAuthenticate(p) => {
+                // let mut req = CThostFtdcReqUserLoginField::default();
+                // set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
+                // set_cstr_from_str_truncate_i8(&mut req.UserID, account);
+                // set_cstr_from_str_truncate_i8(&mut req.Password, &ctp_account.password);
+                // api_box.req_user_login(&mut req, get_request_id());
+                break;
+            }
             _ => {}
         }
     }
+    println!("完成认证");
     result.timestamp = chrono::Local::now().timestamp();
-    let config = config::standard();
-    let encoded: Vec<u8> = bincode::encode_to_vec(&result, config).unwrap();
-    let save_path = std::path::Path::new(".cache")
-        .join("localctp_sys_query_result")
-        .join(format!("{}_{}", broker_id, account));
-    info!("save_path = {:?}", save_path);
-    check_make_dir(save_path.to_str().unwrap());
-    let save_path = save_path.join(format!("{}.dat", result.trading_day));
-    info!("path={:?}", save_path);
-    let mut f = std::fs::File::create(&save_path).unwrap();
-    f.write_all(&encoded).unwrap();
-    info!("{} 初始化查询完成. bin.len={}", account, encoded.len());
-    let (decoded, _len): (CtpQueryResult, usize) =
-        bincode::decode_from_slice(&encoded[..], config).unwrap();
-    info!(
-        "decoded {} {} {}",
-        decoded.broker_id, decoded.account, decoded.trading_day
-    );
-    let ver = unsafe { CStr::from_ptr(get_api_version()) }
-        .to_str()
-        .unwrap();
-    info!("version={ver}");
-    raw_api.release();
-    Box::leak(raw_api);
-    info!("完成保存查询结果");
+    info!("开始输入行情");
+    // Wrap the API in Arc and Mutex for shared ownership and thread safety
+    let shared_api = Arc::new(Mutex::new(create_api(&flow_path, false)));
+    // Clone the API handle for the spawned task
+    let api_clone = shared_api.clone();
+    tokio::spawn(async move {
+        let mut api = api_clone.lock().await;
+        simulate_market_data(&mut *api).await;
+    });
+    let raw_api = api_box.as_mut();
+    insert_limit_order(raw_api, ctp_account).await;
+
+    // let ver = unsafe { CStr::from_ptr(get_api_version()) }
+    //     .to_str()
+    //     .unwrap();
+    // info!("version={ver}");
+    // api_box.release();
 }

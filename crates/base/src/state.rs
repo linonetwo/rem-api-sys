@@ -262,7 +262,7 @@ pub struct ContractDetail<OT: OrderType, TT: TradeType> {
 }
 
 /// 发送委托
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct InputOrderField {
     pub direction: DirectionType,
     pub offset: OffsetFlag,

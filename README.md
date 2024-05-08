@@ -29,3 +29,12 @@ sudo ln -s crates/localctp-sys/v_current/libthosttraderapi_se.so /usr/local/lib/
 sudo ln -s crates/localctp-sys/v_current/libthostmduserapi_se.so /usr/local/lib/
 sudo ldconfig
 ```
+
+如果还有问题，尝试用绝对路径。以下绝对路径仅供参考，需要自己修改：
+
+```sh
+rm /usr/local/lib/libthostmduserapi_se.so /usr/local/lib/libthosttraderapi_se.so
+sudo ln -s /root/localctp-sys/crates/localctp-sys/v_current/libthosttraderapi_se.so /usr/local/lib/
+sudo ln -s /root/localctp-sys/crates/localctp-sys/v_current/libthostmduserapi_se.so /usr/local/lib/
+sudo ldconfig
+```

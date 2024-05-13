@@ -45,7 +45,7 @@ async fn simulate_market_data(api: &mut CThostFtdcTraderApi) {
     loop {
         interval.tick().await;
         let market_quote = FakeMarketQuote {
-            instrument_id: "MA403".to_string(),
+            instrument_id: "ag2406".to_string(),
             bid_price: rng.gen_range(1000.0..2000.0),
             ask_price: rng.gen_range(1000.0..2000.0),
             quote_ref: format!("{:.1}", rng.gen::<f64>() * 1000.0),
@@ -113,7 +113,7 @@ async fn insert_limit_order(api: &mut dyn TraderApiType, account_config: &CtpAcc
     let broker_id = &account_config.broker_id;
     let account = &account_config.account;
     let exchange = "SHFE"; // Shanghai Futures Exchange, adjust as needed
-    let symbol = "cu2101"; // Example futures contract for copper, adjust as needed
+    let symbol = "ag2406"; // Example futures contract for copper, adjust as needed
     let price = 50000.0; // Example price, adjust as needed
     let volume = 1; // Example volume, adjust as needed
     let order_ref = 123; // This should be a unique reference for the order, possibly incrementing
@@ -148,8 +148,8 @@ async fn insert_limit_order(api: &mut dyn TraderApiType, account_config: &CtpAcc
 
 #[tokio::main]
 async fn main() {
-    // FIXME: 启用 log 导致报错
-    // init_logger();
+    init_logger();
+    info!("Start");
     // let trade_front = "tcp://180.168.146.187:10130"; // 7*24
     let account = CtpAccountConfig {
         broker_id: "9999".to_string(),
@@ -228,7 +228,8 @@ async fn query(ctp_account: &CtpAccountConfig) {
     while let Some(spi_msg) = stream.next().await {
         use localctp_sys::trader_api::CThostFtdcTraderSpiOutput::*;
         match spi_msg {
-            OnFrontConnected(_p) => {
+            OnFrontConnected(p) => {
+                info!("前端连接成功回报 OnFrontConnected: {:?}", p);
                 let mut req = CThostFtdcReqAuthenticateField::default();
                 set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
                 set_cstr_from_str_truncate_i8(&mut req.UserID, account);
@@ -236,9 +237,10 @@ async fn query(ctp_account: &CtpAccountConfig) {
                 set_cstr_from_str_truncate_i8(&mut req.UserProductInfo, user_product_info);
                 set_cstr_from_str_truncate_i8(&mut req.AppID, app_id);
                 api_box.req_authenticate(&mut req, get_request_id());
-                info!("OnFrontConnected");
+                info!("call req_authenticate done");
             }
             OnRspAuthenticate(p) => {
+                info!("认证成功回报 OnRspAuthenticate: {:?}", p);
                 // 认证后才能登录
                 let mut req = CThostFtdcReqUserLoginField::default();
                 set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);

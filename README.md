@@ -38,3 +38,7 @@ sudo ln -s /root/localctp-sys/crates/localctp-sys/v_current/libthosttraderapi_se
 sudo ln -s /root/localctp-sys/crates/localctp-sys/v_current/libthostmduserapi_se.so /usr/local/lib/
 sudo ldconfig
 ```
+
+### Order successfully inserted. 但实际上没有下单成功
+
+可能因为 `Rejected due to instrument not found`，可以把 `LocalCTP/TestLocalCTP/instrument.csv` 拖到项目根目录。

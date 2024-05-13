@@ -239,12 +239,23 @@ async fn query(ctp_account: &CtpAccountConfig) {
                 info!("OnFrontConnected");
             }
             OnRspAuthenticate(p) => {
-                // let mut req = CThostFtdcReqUserLoginField::default();
-                // set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
-                // set_cstr_from_str_truncate_i8(&mut req.UserID, account);
-                // set_cstr_from_str_truncate_i8(&mut req.Password, &ctp_account.password);
-                // api_box.req_user_login(&mut req, get_request_id());
+                // 认证后才能登录
+                let mut req = CThostFtdcReqUserLoginField::default();
+                set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
+                set_cstr_from_str_truncate_i8(&mut req.UserID, account);
+                set_cstr_from_str_truncate_i8(&mut req.Password, &ctp_account.password);
+                // 登录后才能下单
+                api_box.req_user_login(&mut req, get_request_id());
                 break;
+            }
+            OnRtnOrder(p) => {
+                info!("报单成功回报 Order Return: {:?}", p);
+            }
+            OnRspOrderInsert(p) => {
+                info!("报单失败回报 OnRspOrderInsert: {:?}", p);
+            }
+            OnRtnTrade(p) => {
+                info!("成交回报 OnRtnTrade: {:?}", p);
             }
             _ => {}
         }
@@ -261,7 +272,10 @@ async fn query(ctp_account: &CtpAccountConfig) {
         simulate_market_data(&mut *api).await;
     });
     let raw_api = api_box.as_mut();
+    time::sleep(Duration::from_millis(200)).await;
     insert_limit_order(raw_api, ctp_account).await;
+    // Wait for 2 seconds after inserting the limit order
+    time::sleep(Duration::from_secs(2)).await;
 
     // let ver = unsafe { CStr::from_ptr(get_api_version()) }
     //     .to_str()

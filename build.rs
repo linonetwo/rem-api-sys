@@ -14,7 +14,7 @@ fn main() {
     let ctp_files_src_dir = format!("{}/LocalCTP/ctp_file/{}", local_ctp_path, version);
 
     // Target directory for the system-specific crate
-    let localctp_sys_path = "./crates/localctp-sys/v_current";
+    let localctp_sys_path = "./crates/localctp-sys/thirdparty/LocalCTP/v_current";
     let lib_dst_path = format!("{}/libthosttraderapi_se.so", localctp_sys_path);
 
     // Build the LocalCTP project

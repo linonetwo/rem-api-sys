@@ -3,7 +3,7 @@
 # Configuration variables
 VERSION="6.7.0"
 LOCAL_CTP_PATH="./LocalCTP"
-LOCALCTP_SYS_PATH="./crates/localctp-sys/v_current"
+LOCALCTP_SYS_PATH="./crates/localctp-sys/thirdparty/LocalCTP/v_current"
 
 # Run the build script for LocalCTP
 echo "Building LocalCTP..."

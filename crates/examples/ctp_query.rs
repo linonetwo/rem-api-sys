@@ -1,6 +1,7 @@
 use base::state::{
     DirectionType, InputOrderActionField, InputOrderField, OffsetFlag, TraderApiType,
 };
+use base::util::get_ascii_str;
 use bincode::{config, Decode, Encode};
 use futures::StreamExt;
 use log::info;
@@ -229,7 +230,7 @@ async fn query(ctp_account: &CtpAccountConfig) {
         use localctp_sys::trader_api::CThostFtdcTraderSpiOutput::*;
         match spi_msg {
             OnFrontConnected(p) => {
-                info!("前端连接成功回报 OnFrontConnected: {:?}", p);
+                info!("前端连接成功回报 OnFrontConnected");
                 let mut req = CThostFtdcReqAuthenticateField::default();
                 set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
                 set_cstr_from_str_truncate_i8(&mut req.UserID, account);
@@ -240,7 +241,7 @@ async fn query(ctp_account: &CtpAccountConfig) {
                 info!("call req_authenticate done");
             }
             OnRspAuthenticate(p) => {
-                info!("认证成功回报 OnRspAuthenticate: {:?}", p);
+                info!("认证成功回报 OnRspAuthenticate");
                 // 认证后才能登录
                 let mut req = CThostFtdcReqUserLoginField::default();
                 set_cstr_from_str_truncate_i8(&mut req.BrokerID, broker_id);
@@ -248,18 +249,12 @@ async fn query(ctp_account: &CtpAccountConfig) {
                 set_cstr_from_str_truncate_i8(&mut req.Password, &ctp_account.password);
                 // 登录后才能下单
                 api_box.req_user_login(&mut req, get_request_id());
+                // 这里有个 break，之后这个 while match 不再接收信息。（推荐将 SPI 放到单独线程）
                 break;
             }
-            OnRtnOrder(p) => {
-                info!("报单成功回报 Order Return: {:?}", p);
+            _ => {
+                info!("其它回报");
             }
-            OnRspOrderInsert(p) => {
-                info!("报单失败回报 OnRspOrderInsert: {:?}", p);
-            }
-            OnRtnTrade(p) => {
-                info!("成交回报 OnRtnTrade: {:?}", p);
-            }
-            _ => {}
         }
     }
     println!("完成认证");
@@ -278,6 +273,53 @@ async fn query(ctp_account: &CtpAccountConfig) {
     insert_limit_order(raw_api, ctp_account).await;
     // Wait for 2 seconds after inserting the limit order
     time::sleep(Duration::from_secs(2)).await;
+
+    while let Some(spi_msg) = stream.next().await {
+        use localctp_sys::trader_api::CThostFtdcTraderSpiOutput::*;
+        match spi_msg {
+            OnRtnOrder(p) => {
+                if let Some(order) = p.p_order {
+                    let broker_id = get_ascii_str(&order.BrokerID).unwrap_or("<invalid UTF-8>");
+                    let investor_id = get_ascii_str(&order.InvestorID).unwrap_or("<invalid UTF-8>");
+                    let exchange_id = get_ascii_str(&order.ExchangeID).unwrap_or("<invalid UTF-8>");
+                    let order_ref = get_ascii_str(&order.OrderRef).unwrap_or("<invalid UTF-8>");
+                    let instrument_id =
+                        get_ascii_str(&order.InstrumentID).unwrap_or("<invalid UTF-8>");
+
+                    info!("报单成功回报 Order Return: BrokerID: {}, InvestorID: {}, ExchangeID: {}, OrderRef: {}, InstrumentID: {}", 
+                          broker_id, investor_id, exchange_id, order_ref, instrument_id);
+                } else {
+                    info!("报单成功回报 Order Return: No order data available");
+                }
+            }
+            OnRspOrderInsert(p) => {
+                info!("报单失败回报 OnRspOrderInsert: {:?}", p);
+            }
+            OnRtnTrade(p) => {
+                if let Some(trade) = p.p_trade {
+                    let broker_id = get_ascii_str(&trade.BrokerID).unwrap_or("<invalid UTF-8>");
+                    let investor_id = get_ascii_str(&trade.InvestorID).unwrap_or("<invalid UTF-8>");
+                    let exchange_id = get_ascii_str(&trade.ExchangeID).unwrap_or("<invalid UTF-8>");
+                    let trade_id = get_ascii_str(&trade.TradeID).unwrap_or("<invalid UTF-8>");
+                    let order_ref = get_ascii_str(&trade.OrderRef).unwrap_or("<invalid UTF-8>");
+                    let instrument_id = get_ascii_str(&trade.InstrumentID).unwrap_or("<invalid UTF-8>");
+                    let price = trade.Price;
+                    let volume = trade.Volume;
+            
+                    info!("成交回报 OnRtnTrade: OrderRef: {}, BrokerID: {}, InvestorID: {}, ExchangeID: {}, TradeID: {}, InstrumentID: {}, Price: {:.2}, Volume: {}",
+                          order_ref, broker_id, investor_id, exchange_id, trade_id, instrument_id, price, volume);
+                } else {
+                    info!("成交回报 OnRtnTrade: No trade data available");
+                }
+                // 这里有个 break，之后这个 while match 不再接收信息。（推荐将 SPI 放到单独线程）
+                break;
+            }
+            
+            _ => {
+                info!("其它回报");
+            }
+        }
+    }
 
     // let ver = unsafe { CStr::from_ptr(get_api_version()) }
     //     .to_str()

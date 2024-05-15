@@ -1,5 +1,5 @@
 use super::{
-    handle_function_parameter::ParameterFlavor, handle_function_prototype::MethodFlavor,
+    handle_function_prototype::MethodFlavor, handle_param::param_flavor::ParameterFlavor,
     handle_record::RecordFlavor,
 };
 

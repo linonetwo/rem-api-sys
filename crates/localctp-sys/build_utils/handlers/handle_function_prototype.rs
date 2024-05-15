@@ -1,18 +1,13 @@
 use crate::build_utils::{
-    config::HandlerConfigs, format_name::format_enum_name,
-    handle_function_parameter::ParameterFlavor, process_children, HandlerMap,
+    config::HandlerConfigs, format_name::format_enum_name, process_children, HandlerMap,
 };
 use clang::*;
 use inflector::Inflector;
 
+use super::handle_param::param_flavor::ParameterFlavor;
+
 lazy_static! {
     static ref INDENT: String = "    ".to_string();
-}
-
-macro_rules! console_debug {
-    ($($tokens: tt)*) => {
-        println!("cargo:warning={}", format!($($tokens)*))
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -101,7 +96,8 @@ pub fn handle_function_prototype(
             ((*(*self).vtable_).YDApi_start)(self as *mut YDApi, p_listener as *mut YDListener)
         }}
     }}
-"#,));
+"#,
+                ));
                 return lines;
             }
             if raw_camel_case_name.contains("Multi") {

@@ -286,8 +286,21 @@ async fn query(ctp_account: &CtpAccountConfig) {
                     let instrument_id =
                         get_ascii_str(&order.InstrumentID).unwrap_or("<invalid UTF-8>");
 
-                    info!("报单成功回报 Order Return: BrokerID: {}, InvestorID: {}, ExchangeID: {}, OrderRef: {}, InstrumentID: {}", 
-                          broker_id, investor_id, exchange_id, order_ref, instrument_id);
+                    let order_status = match order.OrderStatus as u8 {
+                        THOST_FTDC_OST_AllTraded => "全部成交",
+                        THOST_FTDC_OST_PartTradedQueueing => "部分成交还在队列中",
+                        THOST_FTDC_OST_PartTradedNotQueueing => "部分成交不在队列中",
+                        THOST_FTDC_OST_NoTradeQueueing => "未成交还在队列中",
+                        THOST_FTDC_OST_NoTradeNotQueueing => "未成交不在队列中",
+                        THOST_FTDC_OST_Canceled => "已撤销",
+                        THOST_FTDC_OST_Unknown => "未知状态",
+                        THOST_FTDC_OST_NotTouched => "尚未触发",
+                        THOST_FTDC_OST_Touched => "已触发",
+                        _ => "其他状态",
+                    };
+
+                    info!("报单成功回报 Order Return: BrokerID: {}, InvestorID: {}, ExchangeID: {}, OrderRef: {}, OrderStatus: {}, InstrumentID: {}", 
+                          broker_id, investor_id, exchange_id, order_ref, order_status, instrument_id);
                 } else {
                     info!("报单成功回报 Order Return: No order data available");
                 }
@@ -302,10 +315,11 @@ async fn query(ctp_account: &CtpAccountConfig) {
                     let exchange_id = get_ascii_str(&trade.ExchangeID).unwrap_or("<invalid UTF-8>");
                     let trade_id = get_ascii_str(&trade.TradeID).unwrap_or("<invalid UTF-8>");
                     let order_ref = get_ascii_str(&trade.OrderRef).unwrap_or("<invalid UTF-8>");
-                    let instrument_id = get_ascii_str(&trade.InstrumentID).unwrap_or("<invalid UTF-8>");
+                    let instrument_id =
+                        get_ascii_str(&trade.InstrumentID).unwrap_or("<invalid UTF-8>");
                     let price = trade.Price;
                     let volume = trade.Volume;
-            
+
                     info!("成交回报 OnRtnTrade: OrderRef: {}, BrokerID: {}, InvestorID: {}, ExchangeID: {}, TradeID: {}, InstrumentID: {}, Price: {:.2}, Volume: {}",
                           order_ref, broker_id, investor_id, exchange_id, trade_id, instrument_id, price, volume);
                 } else {
@@ -314,7 +328,7 @@ async fn query(ctp_account: &CtpAccountConfig) {
                 // 这里有个 break，之后这个 while match 不再接收信息。（推荐将 SPI 放到单独线程）
                 break;
             }
-            
+
             _ => {
                 info!("其它回报");
             }

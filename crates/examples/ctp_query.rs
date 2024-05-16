@@ -1,6 +1,6 @@
 use bincode::{config, Decode, Encode};
 use futures::StreamExt;
-use log::info;
+use log::{info,debug};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use std::ffi::{CStr, CString};
@@ -15,7 +15,7 @@ use localctp_sys::*;
 
 pub fn init_logger() {
     if std::env::var("RUST_LOG").is_err() {
-        std::env::set_var("RUST_LOG", "info")
+        std::env::set_var("RUST_LOG", "debug")
     }
     tracing_subscriber::fmt::init();
 }
@@ -100,7 +100,7 @@ async fn insert_limit_order(api: &mut dyn TraderApiType, account_config: &CtpAcc
 #[tokio::main]
 async fn main() {
     init_logger();
-    info!("Start");
+    info!("Start!");
     // let trade_front = "tcp://180.168.146.187:10130"; // 7*24
     let account = CtpAccountConfig {
         broker_id: "9999".to_string(),
@@ -151,16 +151,22 @@ async fn query(ctp_account: &CtpAccountConfig) {
     };
     let flow_path = format!(".cache/localctp_sys_trade_flow_{}_{}//", broker_id, account);
     check_make_dir(&flow_path);
+    debug!("create_local_api_and_spi with flow_path {}", flow_path);
     let (mut api_box, mut spi_stream) = create_local_api_and_spi(&flow_path);
+    debug!("create_local_api_and_spi done {:#?}", api_box);
+    debug!("register name_server {:#?}", name_server);
     if name_server.len() > 0 {
         api_box.register_name_server(CString::new(name_server).unwrap());
     } else {
         api_box.register_front(CString::new(trade_front).unwrap());
         info!("register front {}", trade_front);
     }
+    debug!("register done");
     api_box.subscribe_public_topic(localctp_sys::bindings::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
     api_box.subscribe_private_topic(localctp_sys::bindings::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    debug!("subscribe topic done");
     api_box.init();
+    debug!("init done");
     let mut result = CtpQueryResult::default();
     result.broker_id = broker_id.to_string();
     result.account = account.to_string();

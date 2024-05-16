@@ -54,7 +54,7 @@ fn create_mod_file(generated_dir: &Path) {
 
 /// 用 bindgen 生成与 C++ 代码兼容的 rust 的类型，生成的东西非常基本，还需要通过 unsafe 调用
 fn generate_type(generated_dir: &Path) {
-    println!("cargo:rustc-link-lib=dylib=stdc++");
+    // println!("cargo:rustc-link-lib=dylib=stdc++");
 
     let lib_path = THIRD_PARTY_PROJECT_DIR
         .join("LocalCTP")
@@ -67,7 +67,7 @@ fn generate_type(generated_dir: &Path) {
 
     println!("cargo:rustc-link-search=native={}", lib_path.display());
     println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib_path.display());
-    println!("cargo:rustc-link-lib=dylib=yd");
+    println!("cargo:rustc-link-lib=thosttraderapi_se");
 
     let wrapper_header_path = THIRD_PARTY_PROJECT_DIR
         .join("wrapper.hpp")
@@ -92,7 +92,6 @@ fn generate_type(generated_dir: &Path) {
         .clang_arg(format!("-I{}", lib_path.join("include").display())) // Adjust include path as necessary
         .generate()
         .expect("Unable to generate bindings");
-    // TODO: fix "expected trait, found struct `YDListener`"
 
     let file_path = generated_dir.join("bindings.rs");
     bindings

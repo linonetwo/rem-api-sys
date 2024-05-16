@@ -45,15 +45,15 @@ impl {full_rust_struct_name} {{
     ));
     lines.push(format!(
         r#"
-    /// encapsulate the raw pointer within YDApi
-    pub unsafe fn from_raw(api_ptr: *mut YDApi) -> Box<YDApi> {{
+    /// encapsulate the raw pointer within CThostFtdcTraderApi
+    pub unsafe fn from_raw(api_ptr: *mut CThostFtdcTraderApi) -> Box<CThostFtdcTraderApi> {{
         // Ensure the pointer is not null
         if api_ptr.is_null() {{
-            panic!("YDApi pointer is null");
+            panic!("CThostFtdcTraderApi pointer is null");
         }}
 
-        // Dereference the pointer to obtain YDApi and return it
-        // This assumes that YDApi can be directly obtained from the pointer
+        // Dereference the pointer to obtain CThostFtdcTraderApi and return it
+        // This assumes that CThostFtdcTraderApi can be directly obtained from the pointer
         // Adjust based on your actual struct layout
         Box::from_raw(api_ptr)
     }}

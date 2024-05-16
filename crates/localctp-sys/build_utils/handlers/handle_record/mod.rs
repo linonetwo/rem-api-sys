@@ -29,8 +29,8 @@ pub fn handle_record(
     let full_rust_struct_name = get_full_name_of_entity(&entity);
     match configs.record_flavor {
         RecordFlavor::SPI => {
-            if full_rust_struct_name == "CThostFtdcMdSpi"
-                || full_rust_struct_name == "CThostFtdcTraderSpi"
+            // Don't need `CThostFtdcMdSpi` for LocalCTP
+            if full_rust_struct_name == "CThostFtdcTraderSpi"
             {
                 lines.extend(handle_spi_record(
                     entity,
@@ -41,8 +41,8 @@ pub fn handle_record(
             }
         }
         RecordFlavor::API => {
-            if full_rust_struct_name == "CThostFtdcMdApi"
-                || full_rust_struct_name == "CThostFtdcTraderApi"
+            // Don't need `CThostFtdcMdApi` for LocalCTP
+            if full_rust_struct_name == "CThostFtdcTraderApi"
             {
                 lines.extend(handle_api_record(
                     entity,

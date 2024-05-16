@@ -1,414 +1,555 @@
-use crate::{bindings::*, spi_wrapper::{YDListenerTrait, YD_LISTENER_VTABLE}};
+use crate::{bindings::*};
 
-/* Param: yd_exchange_id *//* Param: yd_product_id *//* Param: yd_instrument_id *//* Param: yd_long_instrument_id *//* Param: yd_trading_code *//* Param: yd_account_id *//* Param: yd_password *//* Param: yd_string *//* Param: yd_sys_order_id *//* Param: yd_trade_id *//* Param: yd_local_order_id *//* Param: ydrfqid *//* Param: yd_long_order_sys_id *//* Param: yd_long_trade_id *//* Param: yd_long_rfqid *//* Param: yd_pc_futures *//* Param: yd_pc_options *//* Param: yd_pc_combination *//* Param: yd_pc_index *//* Param: yd_pc_cash *//* Param: yd_spc_other *//* Param: yd_spc_stock *//* Param: yd_spc_bond *//* Param: yd_spc_fund *//* Param: yd_ot_not_option *//* Param: yd_ot_call_option *//* Param: yd_ot_put_option *//* Param: yd_d_buy *//* Param: yd_d_sell *//* Param: yd_d_make *//* Param: yd_d_split *//* Param: yd_d_freeze *//* Param: yd_d_unfreeze *//* Param: yd_d_normal_2_covered *//* Param: yd_d_covered_2_normal *//* Param: yd_pd_long *//* Param: yd_pd_short *//* Param: yd_psd_today *//* Param: yd_psd_history *//* Param: yd_hf_speculation *//* Param: yd_hf_arbitrage *//* Param: yd_hf_hedge *//* Param: yd_hf_internal *//* Param: yd_hf_normal *//* Param: yd_hf_covered *//* Param: yd_max_hedge_flag *//* Param: yd_tr_allow *//* Param: yd_tr_close_only *//* Param: yd_tr_forbidden *//* Param: yd_of_open *//* Param: yd_of_close *//* Param: yd_of_force_close *//* Param: yd_of_close_today *//* Param: yd_of_close_yesterday *//* Param: yd_of_open_1_close_2 *//* Param: yd_of_close_1_open_2 *//* Param: yd_odt_limit *//* Param: yd_odt_fak *//* Param: yd_odt_market *//* Param: yd_odt_fok *//* Param: yd_odt_close_self_option_position *//* Param: yd_odt_reserve_option_position *//* Param: yd_odt_sell_close_self_futures_position *//* Param: yd_odt_position_offset_mark *//* Param: yd_odt_option_abandon_execute_mark *//* Param: yd_odt_close_futures_position_mark *//* Param: yd_ott_no_trigger *//* Param: yd_ott_take_profit *//* Param: yd_ott_stop_loss *//* Param: yd_gorf_increase *//* Param: yd_gorf_increase_one *//* Param: yd_os_accepted *//* Param: yd_os_queuing *//* Param: yd_os_canceled *//* Param: yd_os_all_traded *//* Param: yd_os_rejected *//* Param: yd_ots_not_triggered *//* Param: yd_ots_triggered *//* Param: yd_yof_normal *//* Param: yd_yof_quote_derived *//* Param: yd_yof_option_execute *//* Param: yd_yof_option_abandon_execute *//* Param: yd_yof_request_for_quote *//* Param: yd_yof_comb_position *//* Param: yd_yof_option_execute_together *//* Param: yd_yof_mark *//* Param: yd_yof_option_self_close *//* Param: yd_yof_freeze_underlying *//* Param: yd_yof_cover *//* Param: yd_yqf_response_of_rfq *//* Param: yd_yqf_replace_last_quote *//* Param: yd_chf_spec_spec *//* Param: yd_chf_spec_hedge *//* Param: yd_chf_hedge_hedge *//* Param: yd_chf_hedge_spec *//* Param: yd_max_comb_hedge_flag *//* Param: yd_cpt_dce_futures_offset *//* Param: yd_cpt_dce_options_offset *//* Param: yd_cpt_dce_futures_calendar_spread *//* Param: yd_cpt_dce_futures_product_spread *//* Param: yd_cpt_dce_buy_options_vertical_spread *//* Param: yd_cpt_dce_sell_options_vertical_spread *//* Param: yd_cpt_dce_options_straddle *//* Param: yd_cpt_dce_options_strangle *//* Param: yd_cpt_dce_buy_options_covered *//* Param: yd_cpt_dce_sell_options_covered *//* Param: yd_cpt_gfex_futures_offset *//* Param: yd_cpt_gfex_options_offset *//* Param: yd_cpt_gfex_futures_calendar_spread *//* Param: yd_cpt_gfex_futures_product_spread *//* Param: yd_cpt_gfex_buy_options_vertical_spread *//* Param: yd_cpt_gfex_sell_options_vertical_spread *//* Param: yd_cpt_gfex_options_straddle *//* Param: yd_cpt_gfex_options_strangle *//* Param: yd_cpt_gfex_buy_options_covered *//* Param: yd_cpt_gfex_sell_options_covered *//* Param: yd_cpt_czce_spread *//* Param: yd_cpt_czce_straddle_strangle *//* Param: yd_cpt_czce_sell_option_convered *//* Param: yd_cpt_stock_option_cnsjc *//* Param: yd_cpt_stock_option_cxsjc *//* Param: yd_cpt_stock_option_pnsjc *//* Param: yd_cpt_stock_option_pxsjc *//* Param: yd_cpt_stock_option_ks *//* Param: yd_cpt_stock_option_kks *//* Param: yd_cs_any *//* Param: yd_cs_fixed *//* Param: yd_cs_prefered *//* Param: yd_am_modify_usage *//* Param: yd_am_deposit *//* Param: yd_am_frozen_withdraw *//* Param: yd_am_cancel_frozen_withdraw *//* Param: yd_am_withdraw *//* Param: yd_am_deposit_to *//* Param: yd_am_withdraw_to *//* Param: yd_am_force_modify_usage *//* Param: yd_rt_change_password *//* Param: yd_rt_set_trading_right *//* Param: yd_rt_alter_money *//* Param: yd_rt_select_connection *//* Param: yd_rt_admin_trading *//* Param: yd_rt_update_margin_rate *//* Param: yd_rt_update_spot_position *//* Param: yd_rt_update_spot_alive *//* Param: yd_rt_adjust_account_margin_model_info *//* Param: yd_rt_update_message_commission_config *//* Param: yd_rt_update_holding_external_frozen *//* Param: yd_ae_tcp_trade_connected *//* Param: yd_ae_tcp_trade_disconnected *//* Param: yd_ae_tcp_market_data_connected *//* Param: yd_ae_tcp_market_data_disconnected *//* Param: yd_ae_server_restarted *//* Param: yd_ae_server_switched *//* Param: yd_ae_xtcp_trade_connected *//* Param: yd_ae_xtcp_trade_disconnected *//* Param: yd_af_select_connection *//* Param: yd_af_auto_make_comb_position *//* Param: yd_af_raw_protocol *//* Param: yd_af_disable_self_trade_check *//* Param: yd_af_notify_order_accept *//* Param: yd_af_no_close_frozen_on_insert_order *//* Param: yd_af_order_ref_check *//* Param: yd_cbt_pre_settlement_price *//* Param: yd_cbt_open_price *//* Param: yd_cbt_last_price *//* Param: yd_cbt_market_average_price *//* Param: yd_cbt_max_last_pre_settlement_price *//* Param: yd_cbt_order_price *//* Param: yd_cbt_none *//* Param: yd_cbt_same_price *//* Param: yd_idt_normal_order_sys_id *//* Param: yd_idt_quote_derived_order_sys_id *//* Param: yd_idt_option_execute_order_sys_id *//* Param: yd_idt_option_abandon_execute_order_sys_id *//* Param: yd_idt_request_for_quote_order_sys_id *//* Param: yd_idt_comb_position_order_sys_id *//* Param: yd_idt_option_execute_together *//* Param: yd_idt_mark *//* Param: yd_idt_option_self_close *//* Param: yd_idt_freeze_underlying *//* Param: yd_idt_cover *//* Param: yd_idt_trade_id *//* Param: yd_idt_comb_position_detail_id *//* Param: yd_idt_quote_sys_id *//* Param: yd_grpt_option_long_position_cost *//* Param: yd_grpt_trade_position_ratio *//* Param: yd_grpt_order_cancel_ratio *//* Param: yd_grpt_dynamic_price_limit_upper_ratio *//* Param: yd_grpt_dynamic_price_limit_lower_ratio *//* Param: yd_grpt_dynamic_price_limit_upper_tick_count *//* Param: yd_grpt_dynamic_price_limit_lower_tick_count *//* Param: yd_grpt_dynamic_last_price_limit_upper_ratio *//* Param: yd_grpt_dynamic_last_price_limit_lower_ratio *//* Param: yd_grpt_dynamic_last_price_limit_upper_tick_count *//* Param: yd_grpt_dynamic_last_price_limit_lower_tick_count *//* Param: yd_grpt_exchange_max_order_volume *//* Param: yd_grpt_product_max_order_volume *//* Param: yd_grpt_instrument_max_order_volume *//* Param: yd_grpt_exchange_option_long_position_cost *//* Param: yd_grpt_exchange_st_buy_volume *//* Param: yd_grpt_product_st_buy_volume *//* Param: yd_grpt_exchange_buy_volume *//* Param: yd_grpt_product_buy_volume *//* Param: yd_grpt_instrument_buy_volume *//* Param: yd_grpt_exchange_cash_trading_right *//* Param: yd_grpt_product_cash_trading_right *//* Param: yd_grpt_instrument_cash_trading_right *//* Param: yd_grpt_exchange_holding_limit *//* Param: yd_grpt_product_holding_limit *//* Param: yd_grpt_instrument_holding_limit *//* Param: yd_grpt_trade_st *//* Param: yd_grpt_trade_star_st *//* Param: yd_grpt_qualified_bond_investor *//* Param: yd_grpt_qualified_bond_corp_investor *//* Param: yd_trs_admin_permanent *//* Param: yd_trs_user_permanent *//* Param: yd_trs_admin_temp *//* Param: yd_trs_user_temp *//* Param: yd_trs_count *//* Param: yd_ts_no_trading *//* Param: yd_ts_continuous *//* Param: yd_ts_auction *//* Param: yd_mm_normal *//* Param: yd_mm_spbm *//* Param: yd_mm_rule *//* Param: yd_mm_new_model_start *//* Param: yd_mm_count *//* Param: yd_cv_verify *//* Param: yd_cv_not_verify *//* Param: yd_ef_shfe *//* Param: yd_ef_dce *//* Param: yd_ef_czce *//* Param: yd_ef_cffex *//* Param: yd_ef_ine *//* Param: yd_ef_sse_option *//* Param: yd_ef_szse_option *//* Param: yd_ef_gfex *//* Param: yd_ef_sse_cash *//* Param: yd_ef_szse_cash *//* Param: yd_ecs_disconnected *//* Param: yd_ecs_connected *//* Param: yd_cht_history *//* Param: yd_cht_today_trading *//* Param: yd_cht_today_creation_redemption *//* Param: yd_cht_count *//* Param: yd_cct_stamp_duty *//* Param: yd_cct_securities_management_fee *//* Param: yd_cct_handling_fee *//* Param: yd_cct_transfer_fee *//* Param: yd_cct_brokerage_fee *//* Param: yd_cct_count *//* Param: yd_cif_support_day_trading *//* Param: yd_cif_support_trading *//* Param: yd_cif_support_creation_redemption *//* Param: yd_cif_is_repo *//* Param: yd_tcf_st *//* Param: yd_tcf_star_st *//* Param: yd_tcf_qualified_bond_investor *//* Param: yd_tcf_qualified_bond_corp_investor *//* Param: yd_mdf_pause_trading */// FunctionPrototype: oppositePositionDirection(int)
-/* Param: yd_missing_order */
+/* Param: thost_te_resume_type *//* Param: t_thost_ftdc_trader_id_type *//* Param: t_thost_ftdc_investor_id_type *//* Param: t_thost_ftdc_broker_id_type *//* Param: t_thost_ftdc_broker_abbr_type *//* Param: t_thost_ftdc_broker_name_type *//* Param: t_thost_ftdc_old_exchange_inst_id_type *//* Param: t_thost_ftdc_exchange_inst_id_type *//* Param: t_thost_ftdc_order_ref_type *//* Param: t_thost_ftdc_participant_id_type *//* Param: t_thost_ftdc_user_id_type *//* Param: t_thost_ftdc_password_type *//* Param: t_thost_ftdc_client_id_type *//* Param: t_thost_ftdc_instrument_id_type *//* Param: t_thost_ftdc_old_instrument_id_type *//* Param: t_thost_ftdc_instrument_code_type *//* Param: t_thost_ftdc_market_id_type *//* Param: t_thost_ftdc_product_name_type *//* Param: t_thost_ftdc_exchange_id_type *//* Param: t_thost_ftdc_exchange_name_type *//* Param: t_thost_ftdc_exchange_abbr_type *//* Param: t_thost_ftdc_exchange_flag_type *//* Param: t_thost_ftdc_mac_address_type *//* Param: t_thost_ftdc_system_id_type *//* Param: t_thost_ftdc_client_login_remark_type *//* Param: t_thost_ftdc_exchange_property_type *//* Param: t_thost_ftdc_date_type *//* Param: t_thost_ftdc_time_type *//* Param: t_thost_ftdc_long_time_type *//* Param: t_thost_ftdc_instrument_name_type *//* Param: t_thost_ftdc_settlement_group_id_type *//* Param: t_thost_ftdc_order_sys_id_type *//* Param: t_thost_ftdc_trade_id_type *//* Param: t_thost_ftdc_command_type_type *//* Param: t_thost_ftdc_old_ip_address_type *//* Param: t_thost_ftdc_ip_address_type *//* Param: t_thost_ftdc_ip_port_type *//* Param: t_thost_ftdc_product_info_type *//* Param: t_thost_ftdc_protocol_info_type *//* Param: t_thost_ftdc_business_unit_type *//* Param: t_thost_ftdc_deposit_seq_no_type *//* Param: t_thost_ftdc_identified_card_no_type *//* Param: t_thost_ftdc_id_card_type_type *//* Param: t_thost_ftdc_order_local_id_type *//* Param: t_thost_ftdc_user_name_type *//* Param: t_thost_ftdc_party_name_type *//* Param: t_thost_ftdc_error_msg_type *//* Param: t_thost_ftdc_field_name_type *//* Param: t_thost_ftdc_field_content_type *//* Param: t_thost_ftdc_system_name_type *//* Param: t_thost_ftdc_content_type *//* Param: t_thost_ftdc_investor_range_type *//* Param: t_thost_ftdc_department_range_type *//* Param: t_thost_ftdc_data_sync_status_type *//* Param: t_thost_ftdc_broker_data_sync_status_type *//* Param: t_thost_ftdc_exchange_connect_status_type *//* Param: t_thost_ftdc_trader_connect_status_type *//* Param: t_thost_ftdc_function_code_type *//* Param: t_thost_ftdc_broker_function_code_type *//* Param: t_thost_ftdc_order_action_status_type *//* Param: t_thost_ftdc_order_status_type *//* Param: t_thost_ftdc_order_submit_status_type *//* Param: t_thost_ftdc_position_date_type *//* Param: t_thost_ftdc_position_date_type_type *//* Param: t_thost_ftdc_trading_role_type *//* Param: t_thost_ftdc_product_class_type *//* Param: t_thost_ftdc_api_product_class_type *//* Param: t_thost_ftdc_inst_life_phase_type *//* Param: t_thost_ftdc_direction_type *//* Param: t_thost_ftdc_position_type_type *//* Param: t_thost_ftdc_posi_direction_type *//* Param: t_thost_ftdc_sys_settlement_status_type *//* Param: t_thost_ftdc_ratio_attr_type *//* Param: t_thost_ftdc_hedge_flag_type *//* Param: t_thost_ftdc_bill_hedge_flag_type *//* Param: t_thost_ftdc_client_id_type_type *//* Param: t_thost_ftdc_order_price_type_type *//* Param: t_thost_ftdc_offset_flag_type *//* Param: t_thost_ftdc_force_close_reason_type *//* Param: t_thost_ftdc_order_type_type *//* Param: t_thost_ftdc_time_condition_type *//* Param: t_thost_ftdc_volume_condition_type *//* Param: t_thost_ftdc_contingent_condition_type *//* Param: t_thost_ftdc_action_flag_type *//* Param: t_thost_ftdc_trading_right_type *//* Param: t_thost_ftdc_order_source_type *//* Param: t_thost_ftdc_trade_type_type *//* Param: t_thost_ftdc_spec_posi_type_type *//* Param: t_thost_ftdc_price_source_type *//* Param: t_thost_ftdc_instrument_status_type *//* Param: t_thost_ftdc_inst_status_enter_reason_type *//* Param: t_thost_ftdc_order_action_ref_type *//* Param: t_thost_ftdc_install_count_type *//* Param: t_thost_ftdc_install_id_type *//* Param: t_thost_ftdc_error_id_type *//* Param: t_thost_ftdc_settlement_id_type *//* Param: t_thost_ftdc_volume_type *//* Param: t_thost_ftdc_front_id_type *//* Param: t_thost_ftdc_session_id_type *//* Param: t_thost_ftdc_sequence_no_type *//* Param: t_thost_ftdc_command_no_type *//* Param: t_thost_ftdc_millisec_type *//* Param: t_thost_ftdc_sec_type *//* Param: t_thost_ftdc_volume_multiple_type *//* Param: t_thost_ftdc_trading_segment_sn_type *//* Param: t_thost_ftdc_request_id_type *//* Param: t_thost_ftdc_year_type *//* Param: t_thost_ftdc_month_type *//* Param: t_thost_ftdc_bool_type *//* Param: t_thost_ftdc_price_type *//* Param: t_thost_ftdc_comb_offset_flag_type *//* Param: t_thost_ftdc_comb_hedge_flag_type *//* Param: t_thost_ftdc_ratio_type *//* Param: t_thost_ftdc_money_type *//* Param: t_thost_ftdc_large_volume_type *//* Param: t_thost_ftdc_sequence_series_type *//* Param: t_thost_ftdc_comm_phase_no_type *//* Param: t_thost_ftdc_sequence_label_type *//* Param: t_thost_ftdc_underlying_multiple_type *//* Param: t_thost_ftdc_priority_type *//* Param: t_thost_ftdc_contract_code_type *//* Param: t_thost_ftdc_city_type *//* Param: t_thost_ftdc_is_stock_type *//* Param: t_thost_ftdc_channel_type *//* Param: t_thost_ftdc_address_type *//* Param: t_thost_ftdc_zip_code_type *//* Param: t_thost_ftdc_telephone_type *//* Param: t_thost_ftdc_fax_type *//* Param: t_thost_ftdc_mobile_type *//* Param: t_thost_ftdc_e_mail_type *//* Param: t_thost_ftdc_memo_type *//* Param: t_thost_ftdc_company_code_type *//* Param: t_thost_ftdc_website_type *//* Param: t_thost_ftdc_tax_no_type *//* Param: t_thost_ftdc_batch_status_type *//* Param: t_thost_ftdc_property_id_type *//* Param: t_thost_ftdc_property_name_type *//* Param: t_thost_ftdc_license_no_type *//* Param: t_thost_ftdc_agent_id_type *//* Param: t_thost_ftdc_agent_name_type *//* Param: t_thost_ftdc_agent_group_id_type *//* Param: t_thost_ftdc_agent_group_name_type *//* Param: t_thost_ftdc_return_style_type *//* Param: t_thost_ftdc_return_pattern_type *//* Param: t_thost_ftdc_return_level_type *//* Param: t_thost_ftdc_return_standard_type *//* Param: t_thost_ftdc_mortgage_type_type *//* Param: t_thost_ftdc_investor_settlement_param_id_type *//* Param: t_thost_ftdc_exchange_settlement_param_id_type *//* Param: t_thost_ftdc_system_param_id_type *//* Param: t_thost_ftdc_trade_param_id_type *//* Param: t_thost_ftdc_settlement_param_value_type *//* Param: t_thost_ftdc_counter_id_type *//* Param: t_thost_ftdc_investor_group_name_type *//* Param: t_thost_ftdc_brand_code_type *//* Param: t_thost_ftdc_warehouse_type *//* Param: t_thost_ftdc_product_date_type *//* Param: t_thost_ftdc_grade_type *//* Param: t_thost_ftdc_classify_type *//* Param: t_thost_ftdc_position_type *//* Param: t_thost_ftdc_yieldly_type *//* Param: t_thost_ftdc_weight_type *//* Param: t_thost_ftdc_sub_entry_fund_no_type *//* Param: t_thost_ftdc_file_id_type *//* Param: t_thost_ftdc_file_name_type *//* Param: t_thost_ftdc_file_type_type *//* Param: t_thost_ftdc_file_format_type *//* Param: t_thost_ftdc_file_upload_status_type *//* Param: t_thost_ftdc_transfer_direction_type *//* Param: t_thost_ftdc_upload_mode_type *//* Param: t_thost_ftdc_account_id_type *//* Param: t_thost_ftdc_bank_flag_type *//* Param: t_thost_ftdc_bank_account_type *//* Param: t_thost_ftdc_open_name_type *//* Param: t_thost_ftdc_open_bank_type *//* Param: t_thost_ftdc_bank_name_type *//* Param: t_thost_ftdc_publish_path_type *//* Param: t_thost_ftdc_operator_id_type *//* Param: t_thost_ftdc_month_count_type *//* Param: t_thost_ftdc_advance_month_array_type *//* Param: t_thost_ftdc_date_expr_type *//* Param: t_thost_ftdc_instrument_id_expr_type *//* Param: t_thost_ftdc_instrument_name_expr_type *//* Param: t_thost_ftdc_special_create_rule_type *//* Param: t_thost_ftdc_basis_price_type_type *//* Param: t_thost_ftdc_product_life_phase_type *//* Param: t_thost_ftdc_delivery_mode_type *//* Param: t_thost_ftdc_log_level_type *//* Param: t_thost_ftdc_process_name_type *//* Param: t_thost_ftdc_operation_memo_type *//* Param: t_thost_ftdc_fund_io_type_type *//* Param: t_thost_ftdc_fund_type_type *//* Param: t_thost_ftdc_fund_direction_type *//* Param: t_thost_ftdc_fund_status_type *//* Param: t_thost_ftdc_bill_no_type *//* Param: t_thost_ftdc_bill_name_type *//* Param: t_thost_ftdc_publish_status_type *//* Param: t_thost_ftdc_enum_value_id_type *//* Param: t_thost_ftdc_enum_value_type_type *//* Param: t_thost_ftdc_enum_value_label_type *//* Param: t_thost_ftdc_enum_value_result_type *//* Param: t_thost_ftdc_system_status_type *//* Param: t_thost_ftdc_settlement_status_type *//* Param: t_thost_ftdc_range_int_type_type *//* Param: t_thost_ftdc_range_int_from_type *//* Param: t_thost_ftdc_range_int_to_type *//* Param: t_thost_ftdc_function_id_type *//* Param: t_thost_ftdc_function_value_code_type *//* Param: t_thost_ftdc_function_name_type *//* Param: t_thost_ftdc_role_id_type *//* Param: t_thost_ftdc_role_name_type *//* Param: t_thost_ftdc_description_type *//* Param: t_thost_ftdc_combine_id_type *//* Param: t_thost_ftdc_combine_type_type *//* Param: t_thost_ftdc_investor_type_type *//* Param: t_thost_ftdc_broker_type_type *//* Param: t_thost_ftdc_risk_level_type *//* Param: t_thost_ftdc_fee_accept_style_type *//* Param: t_thost_ftdc_password_type_type *//* Param: t_thost_ftdc_algorithm_type *//* Param: t_thost_ftdc_include_close_profit_type *//* Param: t_thost_ftdc_all_without_trade_type *//* Param: t_thost_ftdc_comment_type *//* Param: t_thost_ftdc_version_type *//* Param: t_thost_ftdc_trade_code_type *//* Param: t_thost_ftdc_trade_date_type *//* Param: t_thost_ftdc_trade_time_type *//* Param: t_thost_ftdc_trade_serial_type *//* Param: t_thost_ftdc_trade_serial_no_type *//* Param: t_thost_ftdc_future_id_type *//* Param: t_thost_ftdc_bank_id_type *//* Param: t_thost_ftdc_bank_brch_id_type *//* Param: t_thost_ftdc_bank_branch_id_type *//* Param: t_thost_ftdc_oper_no_type *//* Param: t_thost_ftdc_device_id_type *//* Param: t_thost_ftdc_record_num_type *//* Param: t_thost_ftdc_future_account_type *//* Param: t_thost_ftdc_future_pwd_flag_type *//* Param: t_thost_ftdc_transfer_type_type *//* Param: t_thost_ftdc_future_acc_pwd_type *//* Param: t_thost_ftdc_currency_code_type *//* Param: t_thost_ftdc_ret_code_type *//* Param: t_thost_ftdc_ret_info_type *//* Param: t_thost_ftdc_trade_amt_type *//* Param: t_thost_ftdc_use_amt_type *//* Param: t_thost_ftdc_fetch_amt_type *//* Param: t_thost_ftdc_transfer_valid_flag_type *//* Param: t_thost_ftdc_cert_code_type *//* Param: t_thost_ftdc_reason_type *//* Param: t_thost_ftdc_fund_project_id_type *//* Param: t_thost_ftdc_sex_type *//* Param: t_thost_ftdc_profession_type *//* Param: t_thost_ftdc_national_type *//* Param: t_thost_ftdc_province_type *//* Param: t_thost_ftdc_region_type *//* Param: t_thost_ftdc_country_type *//* Param: t_thost_ftdc_license_no_type *//* Param: t_thost_ftdc_company_type_type *//* Param: t_thost_ftdc_business_scope_type *//* Param: t_thost_ftdc_capital_currency_type *//* Param: t_thost_ftdc_user_type_type *//* Param: t_thost_ftdc_branch_id_type *//* Param: t_thost_ftdc_rate_type_type *//* Param: t_thost_ftdc_note_type_type *//* Param: t_thost_ftdc_settlement_style_type *//* Param: t_thost_ftdc_broker_dns_type *//* Param: t_thost_ftdc_sentence_type *//* Param: t_thost_ftdc_settlement_bill_type_type *//* Param: t_thost_ftdc_user_right_type_type *//* Param: t_thost_ftdc_margin_price_type_type *//* Param: t_thost_ftdc_bill_gen_status_type *//* Param: t_thost_ftdc_algo_type_type *//* Param: t_thost_ftdc_handle_position_algo_id_type *//* Param: t_thost_ftdc_find_margin_rate_algo_id_type *//* Param: t_thost_ftdc_handle_trading_account_algo_id_type *//* Param: t_thost_ftdc_person_type_type *//* Param: t_thost_ftdc_query_investor_range_type *//* Param: t_thost_ftdc_investor_risk_status_type *//* Param: t_thost_ftdc_leg_id_type *//* Param: t_thost_ftdc_leg_multiple_type *//* Param: t_thost_ftdc_imply_level_type *//* Param: t_thost_ftdc_clear_account_type *//* Param: t_thost_ftdc_organ_no_type *//* Param: t_thost_ftdc_clearbarch_id_type *//* Param: t_thost_ftdc_user_event_type_type *//* Param: t_thost_ftdc_user_event_info_type *//* Param: t_thost_ftdc_close_style_type *//* Param: t_thost_ftdc_stat_mode_type *//* Param: t_thost_ftdc_parked_order_status_type *//* Param: t_thost_ftdc_parked_order_id_type *//* Param: t_thost_ftdc_parked_order_action_id_type *//* Param: t_thost_ftdc_vir_deal_status_type *//* Param: t_thost_ftdc_org_system_id_type *//* Param: t_thost_ftdc_vir_trade_status_type *//* Param: t_thost_ftdc_vir_bank_acc_type_type *//* Param: t_thost_ftdc_virement_status_type *//* Param: t_thost_ftdc_virement_avail_ability_type *//* Param: t_thost_ftdc_virement_trade_code_type *//* Param: t_thost_ftdc_photo_type_name_type *//* Param: t_thost_ftdc_photo_type_id_type *//* Param: t_thost_ftdc_photo_name_type *//* Param: t_thost_ftdc_topic_id_type *//* Param: t_thost_ftdc_report_type_id_type *//* Param: t_thost_ftdc_character_id_type *//* Param: t_thost_ftdc_aml_param_id_type *//* Param: t_thost_ftdc_aml_investor_type_type *//* Param: t_thost_ftdc_aml_id_card_type_type *//* Param: t_thost_ftdc_aml_trade_direct_type *//* Param: t_thost_ftdc_aml_trade_model_type *//* Param: t_thost_ftdc_aml_op_param_value_type *//* Param: t_thost_ftdc_aml_customer_card_type_type *//* Param: t_thost_ftdc_aml_institution_name_type *//* Param: t_thost_ftdc_aml_district_id_type *//* Param: t_thost_ftdc_aml_relation_ship_type *//* Param: t_thost_ftdc_aml_institution_type_type *//* Param: t_thost_ftdc_aml_institution_id_type *//* Param: t_thost_ftdc_aml_account_type_type *//* Param: t_thost_ftdc_aml_trading_type_type *//* Param: t_thost_ftdc_aml_transact_class_type *//* Param: t_thost_ftdc_aml_capital_io_type *//* Param: t_thost_ftdc_aml_site_type *//* Param: t_thost_ftdc_aml_capital_purpose_type *//* Param: t_thost_ftdc_aml_report_type_type *//* Param: t_thost_ftdc_aml_serial_no_type *//* Param: t_thost_ftdc_aml_status_type *//* Param: t_thost_ftdc_aml_gen_status_type *//* Param: t_thost_ftdc_aml_seq_code_type *//* Param: t_thost_ftdc_aml_file_name_type *//* Param: t_thost_ftdc_aml_money_type *//* Param: t_thost_ftdc_aml_file_amount_type *//* Param: t_thost_ftdc_cfmmc_key_type *//* Param: t_thost_ftdc_cfmmc_token_type *//* Param: t_thost_ftdc_cfmmc_key_kind_type *//* Param: t_thost_ftdc_aml_report_name_type *//* Param: t_thost_ftdc_individual_name_type *//* Param: t_thost_ftdc_currency_id_type *//* Param: t_thost_ftdc_cust_number_type *//* Param: t_thost_ftdc_organ_code_type *//* Param: t_thost_ftdc_organ_name_type *//* Param: t_thost_ftdc_super_organ_code_type *//* Param: t_thost_ftdc_sub_branch_id_type *//* Param: t_thost_ftdc_sub_branch_name_type *//* Param: t_thost_ftdc_branch_net_code_type *//* Param: t_thost_ftdc_branch_net_name_type *//* Param: t_thost_ftdc_organ_flag_type *//* Param: t_thost_ftdc_bank_coding_for_future_type *//* Param: t_thost_ftdc_bank_return_code_type *//* Param: t_thost_ftdc_plate_return_code_type *//* Param: t_thost_ftdc_bank_sub_branch_id_type *//* Param: t_thost_ftdc_future_branch_id_type *//* Param: t_thost_ftdc_return_code_type *//* Param: t_thost_ftdc_operator_code_type *//* Param: t_thost_ftdc_clear_dep_id_type *//* Param: t_thost_ftdc_clear_brch_id_type *//* Param: t_thost_ftdc_clear_name_type *//* Param: t_thost_ftdc_bank_account_name_type *//* Param: t_thost_ftdc_inv_dep_id_type *//* Param: t_thost_ftdc_inv_brch_id_type *//* Param: t_thost_ftdc_message_format_version_type *//* Param: t_thost_ftdc_digest_type *//* Param: t_thost_ftdc_authentic_data_type *//* Param: t_thost_ftdc_password_key_type *//* Param: t_thost_ftdc_future_account_name_type *//* Param: t_thost_ftdc_mobile_phone_type *//* Param: t_thost_ftdc_future_main_key_type *//* Param: t_thost_ftdc_future_work_key_type *//* Param: t_thost_ftdc_future_trans_key_type *//* Param: t_thost_ftdc_bank_main_key_type *//* Param: t_thost_ftdc_bank_work_key_type *//* Param: t_thost_ftdc_bank_trans_key_type *//* Param: t_thost_ftdc_bank_server_description_type *//* Param: t_thost_ftdc_add_info_type *//* Param: t_thost_ftdc_descr_info_for_return_code_type *//* Param: t_thost_ftdc_country_code_type *//* Param: t_thost_ftdc_serial_type *//* Param: t_thost_ftdc_plate_serial_type *//* Param: t_thost_ftdc_bank_serial_type *//* Param: t_thost_ftdc_correct_serial_type *//* Param: t_thost_ftdc_future_serial_type *//* Param: t_thost_ftdc_application_id_type *//* Param: t_thost_ftdc_bank_proxy_id_type *//* Param: t_thost_ftdc_fbt_core_id_type *//* Param: t_thost_ftdc_server_port_type *//* Param: t_thost_ftdc_repealed_times_type *//* Param: t_thost_ftdc_repeal_time_interval_type *//* Param: t_thost_ftdc_total_times_type *//* Param: t_thost_ftdc_fbt_request_id_type *//* Param: t_thost_ftdc_tid_type *//* Param: t_thost_ftdc_trade_amount_type *//* Param: t_thost_ftdc_cust_fee_type *//* Param: t_thost_ftdc_future_fee_type *//* Param: t_thost_ftdc_single_max_amt_type *//* Param: t_thost_ftdc_single_min_amt_type *//* Param: t_thost_ftdc_total_amt_type *//* Param: t_thost_ftdc_certification_type_type *//* Param: t_thost_ftdc_file_business_code_type *//* Param: t_thost_ftdc_cash_exchange_code_type *//* Param: t_thost_ftdc_yes_no_indicator_type *//* Param: t_thost_ftdc_banlance_type_type *//* Param: t_thost_ftdc_gender_type *//* Param: t_thost_ftdc_fee_pay_flag_type *//* Param: t_thost_ftdc_pass_word_key_type_type *//* Param: t_thost_ftdc_fbt_pass_word_type_type *//* Param: t_thost_ftdc_fbt_encry_mode_type *//* Param: t_thost_ftdc_bank_repeal_flag_type *//* Param: t_thost_ftdc_broker_repeal_flag_type *//* Param: t_thost_ftdc_institution_type_type *//* Param: t_thost_ftdc_last_fragment_type *//* Param: t_thost_ftdc_bank_acc_status_type *//* Param: t_thost_ftdc_money_account_status_type *//* Param: t_thost_ftdc_manage_status_type *//* Param: t_thost_ftdc_system_type_type *//* Param: t_thost_ftdc_txn_end_flag_type *//* Param: t_thost_ftdc_process_status_type *//* Param: t_thost_ftdc_cust_type_type *//* Param: t_thost_ftdc_fbt_transfer_direction_type *//* Param: t_thost_ftdc_open_or_destroy_type *//* Param: t_thost_ftdc_availability_flag_type *//* Param: t_thost_ftdc_organ_type_type *//* Param: t_thost_ftdc_organ_level_type *//* Param: t_thost_ftdc_protocal_id_type *//* Param: t_thost_ftdc_connect_mode_type *//* Param: t_thost_ftdc_sync_mode_type *//* Param: t_thost_ftdc_bank_acc_type_type *//* Param: t_thost_ftdc_future_acc_type_type *//* Param: t_thost_ftdc_organ_status_type *//* Param: t_thost_ftdc_ccb_fee_mode_type *//* Param: t_thost_ftdc_comm_api_type_type *//* Param: t_thost_ftdc_service_id_type *//* Param: t_thost_ftdc_service_line_no_type *//* Param: t_thost_ftdc_service_name_type *//* Param: t_thost_ftdc_link_status_type *//* Param: t_thost_ftdc_comm_api_pointer_type *//* Param: t_thost_ftdc_pwd_flag_type *//* Param: t_thost_ftdc_secu_acc_type_type *//* Param: t_thost_ftdc_transfer_status_type *//* Param: t_thost_ftdc_sponsor_type_type *//* Param: t_thost_ftdc_req_rsp_type_type *//* Param: t_thost_ftdc_fbt_user_event_type_type *//* Param: t_thost_ftdc_bank_id_by_bank_type *//* Param: t_thost_ftdc_bank_oper_no_type *//* Param: t_thost_ftdc_bank_cust_no_type *//* Param: t_thost_ftdc_dbop_seq_no_type *//* Param: t_thost_ftdc_table_name_type *//* Param: t_thost_ftdc_pk_name_type *//* Param: t_thost_ftdc_pk_value_type *//* Param: t_thost_ftdc_db_operation_type *//* Param: t_thost_ftdc_sync_flag_type *//* Param: t_thost_ftdc_target_id_type *//* Param: t_thost_ftdc_sync_type_type *//* Param: t_thost_ftdc_fbe_time_type *//* Param: t_thost_ftdc_fbe_bank_no_type *//* Param: t_thost_ftdc_fbe_cert_no_type *//* Param: t_thost_ftdc_ex_direction_type *//* Param: t_thost_ftdc_fbe_bank_account_type *//* Param: t_thost_ftdc_fbe_bank_account_name_type *//* Param: t_thost_ftdc_fbe_amt_type *//* Param: t_thost_ftdc_fbe_business_type_type *//* Param: t_thost_ftdc_fbe_post_script_type *//* Param: t_thost_ftdc_fbe_remark_type *//* Param: t_thost_ftdc_ex_rate_type *//* Param: t_thost_ftdc_fbe_result_flag_type *//* Param: t_thost_ftdc_fbe_rtn_msg_type *//* Param: t_thost_ftdc_fbe_extend_msg_type *//* Param: t_thost_ftdc_fbe_business_serial_type *//* Param: t_thost_ftdc_fbe_system_serial_type *//* Param: t_thost_ftdc_fbe_total_ex_cnt_type *//* Param: t_thost_ftdc_fbe_exch_status_type *//* Param: t_thost_ftdc_fbe_file_flag_type *//* Param: t_thost_ftdc_fbe_already_trade_type *//* Param: t_thost_ftdc_fbe_open_bank_type *//* Param: t_thost_ftdc_fbe_user_event_type_type *//* Param: t_thost_ftdc_fbe_file_name_type *//* Param: t_thost_ftdc_fbe_batch_serial_type *//* Param: t_thost_ftdc_fbe_req_flag_type *//* Param: t_thost_ftdc_notify_class_type *//* Param: t_thost_ftdc_risk_nofity_info_type *//* Param: t_thost_ftdc_force_close_scene_id_type *//* Param: t_thost_ftdc_force_close_type_type *//* Param: t_thost_ftdc_instrument_i_ds_type *//* Param: t_thost_ftdc_risk_notify_method_type *//* Param: t_thost_ftdc_risk_notify_status_type *//* Param: t_thost_ftdc_risk_user_event_type *//* Param: t_thost_ftdc_param_id_type *//* Param: t_thost_ftdc_param_name_type *//* Param: t_thost_ftdc_param_value_type *//* Param: t_thost_ftdc_conditional_order_sort_type_type *//* Param: t_thost_ftdc_send_type_type *//* Param: t_thost_ftdc_client_id_status_type *//* Param: t_thost_ftdc_industry_id_type *//* Param: t_thost_ftdc_question_id_type *//* Param: t_thost_ftdc_question_content_type *//* Param: t_thost_ftdc_option_id_type *//* Param: t_thost_ftdc_option_content_type *//* Param: t_thost_ftdc_question_type_type *//* Param: t_thost_ftdc_process_id_type *//* Param: t_thost_ftdc_seq_no_type *//* Param: t_thost_ftdc_uoa_process_status_type *//* Param: t_thost_ftdc_process_type_type *//* Param: t_thost_ftdc_business_type_type *//* Param: t_thost_ftdc_cfmmc_return_code_type *//* Param: t_thost_ftdc_ex_return_code_type *//* Param: t_thost_ftdc_client_type_type *//* Param: t_thost_ftdc_exchange_id_type_type *//* Param: t_thost_ftdc_ex_client_id_type_type *//* Param: t_thost_ftdc_client_classify_type *//* Param: t_thost_ftdc_uoa_organ_type_type *//* Param: t_thost_ftdc_uoa_country_code_type *//* Param: t_thost_ftdc_area_code_type *//* Param: t_thost_ftdc_futures_id_type *//* Param: t_thost_ftdc_cffmc_date_type *//* Param: t_thost_ftdc_cffmc_time_type *//* Param: t_thost_ftdc_noc_id_type *//* Param: t_thost_ftdc_update_flag_type *//* Param: t_thost_ftdc_apply_operate_id_type *//* Param: t_thost_ftdc_apply_status_id_type *//* Param: t_thost_ftdc_send_method_type *//* Param: t_thost_ftdc_event_type_type *//* Param: t_thost_ftdc_event_mode_type *//* Param: t_thost_ftdc_uoa_auto_send_type *//* Param: t_thost_ftdc_query_depth_type *//* Param: t_thost_ftdc_data_center_id_type *//* Param: t_thost_ftdc_flow_id_type *//* Param: t_thost_ftdc_check_level_type *//* Param: t_thost_ftdc_check_no_type *//* Param: t_thost_ftdc_check_status_type *//* Param: t_thost_ftdc_used_status_type *//* Param: t_thost_ftdc_rate_template_name_type *//* Param: t_thost_ftdc_property_string_type *//* Param: t_thost_ftdc_bank_acount_origin_type *//* Param: t_thost_ftdc_month_bill_trade_sum_type *//* Param: t_thost_ftdc_fbt_trade_code_enum_type *//* Param: t_thost_ftdc_rate_template_id_type *//* Param: t_thost_ftdc_risk_rate_type *//* Param: t_thost_ftdc_timestamp_type *//* Param: t_thost_ftdc_investor_id_rule_name_type *//* Param: t_thost_ftdc_investor_id_rule_expr_type *//* Param: t_thost_ftdc_last_drift_type *//* Param: t_thost_ftdc_last_success_type *//* Param: t_thost_ftdc_auth_key_type *//* Param: t_thost_ftdc_serial_number_type *//* Param: t_thost_ftdc_otp_type_type *//* Param: t_thost_ftdc_otp_vendors_id_type *//* Param: t_thost_ftdc_otp_vendors_name_type *//* Param: t_thost_ftdc_otp_status_type *//* Param: t_thost_ftdc_broker_user_type_type *//* Param: t_thost_ftdc_future_type_type *//* Param: t_thost_ftdc_fund_event_type_type *//* Param: t_thost_ftdc_account_source_type_type *//* Param: t_thost_ftdc_code_source_type_type *//* Param: t_thost_ftdc_user_range_type *//* Param: t_thost_ftdc_time_span_type *//* Param: t_thost_ftdc_import_sequence_id_type *//* Param: t_thost_ftdc_by_group_type *//* Param: t_thost_ftdc_trade_sum_stat_mode_type *//* Param: t_thost_ftdc_com_type_type *//* Param: t_thost_ftdc_user_product_id_type *//* Param: t_thost_ftdc_user_product_name_type *//* Param: t_thost_ftdc_user_product_memo_type *//* Param: t_thost_ftdc_csrc_cancel_flag_type *//* Param: t_thost_ftdc_csrc_date_type *//* Param: t_thost_ftdc_csrc_investor_name_type *//* Param: t_thost_ftdc_csrc_open_investor_name_type *//* Param: t_thost_ftdc_csrc_investor_id_type *//* Param: t_thost_ftdc_csrc_identified_card_no_type *//* Param: t_thost_ftdc_csrc_client_id_type *//* Param: t_thost_ftdc_csrc_bank_flag_type *//* Param: t_thost_ftdc_csrc_bank_account_type *//* Param: t_thost_ftdc_csrc_open_name_type *//* Param: t_thost_ftdc_csrc_memo_type *//* Param: t_thost_ftdc_csrc_time_type *//* Param: t_thost_ftdc_csrc_trade_id_type *//* Param: t_thost_ftdc_csrc_exchange_inst_id_type *//* Param: t_thost_ftdc_csrc_mortgage_name_type *//* Param: t_thost_ftdc_csrc_reason_type *//* Param: t_thost_ftdc_is_settlement_type *//* Param: t_thost_ftdc_csrc_money_type *//* Param: t_thost_ftdc_csrc_price_type *//* Param: t_thost_ftdc_csrc_options_type_type *//* Param: t_thost_ftdc_csrc_strike_price_type *//* Param: t_thost_ftdc_csrc_target_product_id_type *//* Param: t_thost_ftdc_csrc_target_instr_id_type *//* Param: t_thost_ftdc_comm_model_name_type *//* Param: t_thost_ftdc_comm_model_memo_type *//* Param: t_thost_ftdc_expr_set_mode_type *//* Param: t_thost_ftdc_rate_investor_range_type *//* Param: t_thost_ftdc_agent_broker_id_type *//* Param: t_thost_ftdc_dr_identity_id_type *//* Param: t_thost_ftdc_dr_identity_name_type *//* Param: t_thost_ftdc_db_link_id_type *//* Param: t_thost_ftdc_sync_data_status_type *//* Param: t_thost_ftdc_trade_source_type *//* Param: t_thost_ftdc_flex_stat_mode_type *//* Param: t_thost_ftdc_by_investor_range_type *//* Param: t_thost_ftdc_s_risk_rate_type *//* Param: t_thost_ftdc_sequence_no_12_type *//* Param: t_thost_ftdc_property_investor_range_type *//* Param: t_thost_ftdc_file_status_type *//* Param: t_thost_ftdc_file_gen_style_type *//* Param: t_thost_ftdc_sys_oper_mode_type *//* Param: t_thost_ftdc_sys_oper_type_type *//* Param: t_thost_ftdc_csrc_data_quey_type_type *//* Param: t_thost_ftdc_freeze_status_type *//* Param: t_thost_ftdc_standard_status_type *//* Param: t_thost_ftdc_csrc_freeze_status_type *//* Param: t_thost_ftdc_right_param_type_type *//* Param: t_thost_ftdc_right_template_id_type *//* Param: t_thost_ftdc_right_template_name_type *//* Param: t_thost_ftdc_data_status_type *//* Param: t_thost_ftdc_aml_check_status_type *//* Param: t_thost_ftdc_aml_date_type_type *//* Param: t_thost_ftdc_aml_check_level_type *//* Param: t_thost_ftdc_aml_check_flow_type *//* Param: t_thost_ftdc_data_type_type *//* Param: t_thost_ftdc_export_file_type_type *//* Param: t_thost_ftdc_settle_manager_type_type *//* Param: t_thost_ftdc_settle_manager_id_type *//* Param: t_thost_ftdc_settle_manager_name_type *//* Param: t_thost_ftdc_settle_manager_level_type *//* Param: t_thost_ftdc_settle_manager_group_type *//* Param: t_thost_ftdc_check_result_memo_type *//* Param: t_thost_ftdc_function_url_type *//* Param: t_thost_ftdc_auth_info_type *//* Param: t_thost_ftdc_auth_code_type *//* Param: t_thost_ftdc_limit_use_type_type *//* Param: t_thost_ftdc_data_resource_type *//* Param: t_thost_ftdc_margin_type_type *//* Param: t_thost_ftdc_active_type_type *//* Param: t_thost_ftdc_margin_rate_type_type *//* Param: t_thost_ftdc_back_up_status_type *//* Param: t_thost_ftdc_init_settlement_type *//* Param: t_thost_ftdc_report_status_type *//* Param: t_thost_ftdc_save_status_type *//* Param: t_thost_ftdc_sett_archive_status_type *//* Param: t_thost_ftdc_ctp_type_type *//* Param: t_thost_ftdc_tool_id_type *//* Param: t_thost_ftdc_tool_name_type *//* Param: t_thost_ftdc_close_deal_type_type *//* Param: t_thost_ftdc_mortgage_fund_use_range_type *//* Param: t_thost_ftdc_currency_unit_type *//* Param: t_thost_ftdc_exchange_rate_type *//* Param: t_thost_ftdc_spec_product_type_type *//* Param: t_thost_ftdc_fund_mortgage_type_type *//* Param: t_thost_ftdc_account_settlement_param_id_type *//* Param: t_thost_ftdc_currency_name_type *//* Param: t_thost_ftdc_currency_sign_type *//* Param: t_thost_ftdc_fund_mort_direction_type *//* Param: t_thost_ftdc_business_class_type *//* Param: t_thost_ftdc_swap_source_type_type *//* Param: t_thost_ftdc_curr_ex_direction_type *//* Param: t_thost_ftdc_currency_swap_status_type *//* Param: t_thost_ftdc_curr_exch_cert_no_type *//* Param: t_thost_ftdc_batch_serial_no_type *//* Param: t_thost_ftdc_req_flag_type *//* Param: t_thost_ftdc_res_flag_type *//* Param: t_thost_ftdc_page_control_type *//* Param: t_thost_ftdc_record_count_type *//* Param: t_thost_ftdc_currency_swap_memo_type *//* Param: t_thost_ftdc_ex_status_type *//* Param: t_thost_ftdc_client_region_type *//* Param: t_thost_ftdc_work_place_type *//* Param: t_thost_ftdc_business_period_type *//* Param: t_thost_ftdc_web_site_type *//* Param: t_thost_ftdc_uoa_id_card_type_type *//* Param: t_thost_ftdc_client_mode_type *//* Param: t_thost_ftdc_investor_full_name_type *//* Param: t_thost_ftdc_uoa_broker_id_type *//* Param: t_thost_ftdc_uoa_zip_code_type *//* Param: t_thost_ftdc_uoae_mail_type *//* Param: t_thost_ftdc_old_city_type *//* Param: t_thost_ftdc_corporate_identified_card_no_type *//* Param: t_thost_ftdc_has_board_type *//* Param: t_thost_ftdc_start_mode_type *//* Param: t_thost_ftdc_template_type_type *//* Param: t_thost_ftdc_login_mode_type *//* Param: t_thost_ftdc_prompt_type_type *//* Param: t_thost_ftdc_ledger_manage_id_type *//* Param: t_thost_ftdc_invest_variety_type *//* Param: t_thost_ftdc_bank_account_type_type *//* Param: t_thost_ftdc_ledger_manage_bank_type *//* Param: t_thost_ftdc_cffex_department_name_type *//* Param: t_thost_ftdc_cffex_department_code_type *//* Param: t_thost_ftdc_has_trustee_type *//* Param: t_thost_ftdc_csrc_memo_1_type *//* Param: t_thost_ftdc_assetmgr_c_full_name_type *//* Param: t_thost_ftdc_assetmgr_approval_no_type *//* Param: t_thost_ftdc_assetmgr_mgr_name_type *//* Param: t_thost_ftdc_am_type_type *//* Param: t_thost_ftdc_csrc_am_type_type *//* Param: t_thost_ftdc_csrc_fund_io_type_type *//* Param: t_thost_ftdc_cus_account_type_type *//* Param: t_thost_ftdc_csrc_national_type *//* Param: t_thost_ftdc_csrc_sec_agent_id_type *//* Param: t_thost_ftdc_language_type_type *//* Param: t_thost_ftdc_am_account_type *//* Param: t_thost_ftdc_assetmgr_client_type_type *//* Param: t_thost_ftdc_assetmgr_type_type *//* Param: t_thost_ftdc_uom_type *//* Param: t_thost_ftdc_shfe_inst_life_phase_type *//* Param: t_thost_ftdc_shfe_product_class_type *//* Param: t_thost_ftdc_price_decimal_type *//* Param: t_thost_ftdc_in_the_money_flag_type *//* Param: t_thost_ftdc_check_instr_type_type *//* Param: t_thost_ftdc_delivery_type_type *//* Param: t_thost_ftdc_big_money_type *//* Param: t_thost_ftdc_max_margin_side_algorithm_type *//* Param: t_thost_ftdc_da_client_type_type *//* Param: t_thost_ftdc_combin_instr_id_type *//* Param: t_thost_ftdc_combin_settle_price_type *//* Param: t_thost_ftdc_dce_priority_type *//* Param: t_thost_ftdc_trade_group_id_type *//* Param: t_thost_ftdc_is_check_prepa_type *//* Param: t_thost_ftdc_uoa_assetmgr_type_type *//* Param: t_thost_ftdc_direction_en_type *//* Param: t_thost_ftdc_offset_flag_en_type *//* Param: t_thost_ftdc_hedge_flag_en_type *//* Param: t_thost_ftdc_fund_io_type_en_type *//* Param: t_thost_ftdc_fund_type_en_type *//* Param: t_thost_ftdc_fund_direction_en_type *//* Param: t_thost_ftdc_fund_mort_direction_en_type *//* Param: t_thost_ftdc_swap_business_type_type *//* Param: t_thost_ftdc_options_type_type *//* Param: t_thost_ftdc_strike_mode_type *//* Param: t_thost_ftdc_strike_type_type *//* Param: t_thost_ftdc_apply_type_type *//* Param: t_thost_ftdc_give_up_data_source_type *//* Param: t_thost_ftdc_exec_order_sys_id_type *//* Param: t_thost_ftdc_exec_result_type *//* Param: t_thost_ftdc_strike_sequence_type *//* Param: t_thost_ftdc_strike_time_type *//* Param: t_thost_ftdc_combination_type_type *//* Param: t_thost_ftdc_dce_combination_type_type *//* Param: t_thost_ftdc_option_royalty_price_type_type *//* Param: t_thost_ftdc_balance_algorithm_type *//* Param: t_thost_ftdc_action_type_type *//* Param: t_thost_ftdc_for_quote_status_type *//* Param: t_thost_ftdc_value_method_type *//* Param: t_thost_ftdc_exec_order_position_flag_type *//* Param: t_thost_ftdc_exec_order_close_flag_type *//* Param: t_thost_ftdc_product_type_type *//* Param: t_thost_ftdc_czce_upload_file_name_type *//* Param: t_thost_ftdc_dce_upload_file_name_type *//* Param: t_thost_ftdc_shfe_upload_file_name_type *//* Param: t_thost_ftdc_cffex_upload_file_name_type *//* Param: t_thost_ftdc_comb_direction_type *//* Param: t_thost_ftdc_strike_offset_type_type *//* Param: t_thost_ftdc_reserve_open_acc_stas_type *//* Param: t_thost_ftdc_login_remark_type *//* Param: t_thost_ftdc_invest_unit_id_type *//* Param: t_thost_ftdc_bulletin_id_type *//* Param: t_thost_ftdc_news_type_type *//* Param: t_thost_ftdc_news_urgency_type *//* Param: t_thost_ftdc_abstract_type *//* Param: t_thost_ftdc_come_from_type *//* Param: t_thost_ftdc_url_link_type *//* Param: t_thost_ftdc_long_individual_name_type *//* Param: t_thost_ftdc_long_fbe_bank_account_name_type *//* Param: t_thost_ftdc_date_time_type *//* Param: t_thost_ftdc_weak_password_source_type *//* Param: t_thost_ftdc_random_string_type *//* Param: t_thost_ftdc_opt_self_close_flag_type *//* Param: t_thost_ftdc_biz_type_type *//* Param: t_thost_ftdc_app_type_type *//* Param: t_thost_ftdc_app_id_type *//* Param: t_thost_ftdc_system_info_len_type *//* Param: t_thost_ftdc_additional_info_len_type *//* Param: t_thost_ftdc_client_system_info_type *//* Param: t_thost_ftdc_additional_info_type *//* Param: t_thost_ftdc_base_64_client_system_info_type *//* Param: t_thost_ftdc_base_64_additional_info_type *//* Param: t_thost_ftdc_current_auth_method_type *//* Param: t_thost_ftdc_captcha_info_len_type *//* Param: t_thost_ftdc_captcha_info_type *//* Param: t_thost_ftdc_user_text_seq_type *//* Param: t_thost_ftdc_handshake_data_type *//* Param: t_thost_ftdc_handshake_data_len_type *//* Param: t_thost_ftdc_crypto_key_version_type *//* Param: t_thost_ftdc_rsa_key_version_type *//* Param: t_thost_ftdc_software_provider_id_type *//* Param: t_thost_ftdc_collect_time_type *//* Param: t_thost_ftdc_query_freq_type *//* Param: t_thost_ftdc_response_value_type *//* Param: t_thost_ftdc_otc_trade_type_type *//* Param: t_thost_ftdc_match_type_type *//* Param: t_thost_ftdc_otc_trader_id_type *//* Param: t_thost_ftdc_risk_value_type *//* Param: t_thost_ftdc_idb_name_type *//* Param: t_thost_ftdc_discount_ratio_type *//* Param: t_thost_ftdc_auth_type_type *//* Param: t_thost_ftdc_class_type_type *//* Param: t_thost_ftdc_trading_type_type *//* Param: t_thost_ftdc_product_status_type *//* Param: t_thost_ftdc_sync_delta_status_type *//* Param: t_thost_ftdc_action_direction_type *//* Param: t_thost_ftdc_order_cancel_alg_type *//* Param: t_thost_ftdc_sync_description_type *//* Param: t_thost_ftdc_common_int_type *//* Param: t_thost_ftdc_sys_version_type *//* Param: t_thost_ftdc_open_limit_control_level_type *//* Param: t_thost_ftdc_order_freq_control_level_type *//* Param: t_thost_ftdc_enum_bool_type *//* Param: t_thost_ftdc_time_range_type *//* Param: t_thost_ftdc_delta_type *//* Param: t_thost_ftdc_spread_id_type *//* Param: t_thost_ftdc_portfolio_type *//* Param: t_thost_ftdc_portfolio_def_id_type *//* Param: t_thost_ftdc_with_draw_param_id_type *//* Param: t_thost_ftdc_with_draw_param_value_type *//* Param: t_thost_ftdc_invst_trading_right_type *//* Param: t_thost_ftdc_thost_function_code_type */
 /* Generated by handle_api */
-impl YDApi {
+impl CThostFtdcTraderApi {
+    pub fn release(&mut self) -> () {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_Release)(self as *mut CThostFtdcTraderApi)
+        }
+    }
+    pub fn init(&mut self) -> () {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_Init)(self as *mut CThostFtdcTraderApi)
+        }
+    }
+    pub fn join(&mut self) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_Join)(self as *mut CThostFtdcTraderApi)
+        }
+    }
+    pub fn get_trading_day(&mut self) -> *const std::os::raw::c_char {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_GetTradingDay)(self as *mut CThostFtdcTraderApi)
+        }
+    }
+    pub fn register_front(&mut self, psz_front_address: std::ffi::CString) -> () {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_RegisterFront)(self as *mut CThostFtdcTraderApi, psz_front_address.into_raw())
+        }
+    }
+    pub fn register_name_server(&mut self, psz_ns_address: std::ffi::CString) -> () {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_RegisterNameServer)(self as *mut CThostFtdcTraderApi, psz_ns_address.into_raw())
+        }
+    }
+    pub fn register_fens_user_info(&mut self, p_fens_user_info: &mut CThostFtdcFensUserInfoField) -> () {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_RegisterFensUserInfo)(self as *mut CThostFtdcTraderApi, &mut *p_fens_user_info)
+        }
+    }
+    pub fn register_spi(&mut self, p_spi: &mut CThostFtdcTraderSpi) -> () {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_RegisterSpi)(self as *mut CThostFtdcTraderApi, &mut *p_spi)
+        }
+    }
+    pub fn subscribe_private_topic(&mut self, n_resume_type: THOST_TE_RESUME_TYPE) -> () {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_SubscribePrivateTopic)(self as *mut CThostFtdcTraderApi, n_resume_type)
+        }
+    }
+    pub fn subscribe_public_topic(&mut self, n_resume_type: THOST_TE_RESUME_TYPE) -> () {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_SubscribePublicTopic)(self as *mut CThostFtdcTraderApi, n_resume_type)
+        }
+    }
+    pub fn req_authenticate(&mut self, p_req_authenticate_field: &mut CThostFtdcReqAuthenticateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqAuthenticate)(self as *mut CThostFtdcTraderApi, &mut *p_req_authenticate_field, n_request_id)
+        }
+    }
+    pub fn register_user_system_info(&mut self, p_user_system_info: &mut CThostFtdcUserSystemInfoField) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_RegisterUserSystemInfo)(self as *mut CThostFtdcTraderApi, &mut *p_user_system_info)
+        }
+    }
+    pub fn submit_user_system_info(&mut self, p_user_system_info: &mut CThostFtdcUserSystemInfoField) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_SubmitUserSystemInfo)(self as *mut CThostFtdcTraderApi, &mut *p_user_system_info)
+        }
+    }
+    pub fn req_user_login(&mut self, p_req_user_login_field: &mut CThostFtdcReqUserLoginField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqUserLogin)(self as *mut CThostFtdcTraderApi, &mut *p_req_user_login_field, n_request_id)
+        }
+    }
+    pub fn req_user_logout(&mut self, p_user_logout: &mut CThostFtdcUserLogoutField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqUserLogout)(self as *mut CThostFtdcTraderApi, &mut *p_user_logout, n_request_id)
+        }
+    }
+    pub fn req_user_password_update(&mut self, p_user_password_update: &mut CThostFtdcUserPasswordUpdateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqUserPasswordUpdate)(self as *mut CThostFtdcTraderApi, &mut *p_user_password_update, n_request_id)
+        }
+    }
+    pub fn req_trading_account_password_update(&mut self, p_trading_account_password_update: &mut CThostFtdcTradingAccountPasswordUpdateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqTradingAccountPasswordUpdate)(self as *mut CThostFtdcTraderApi, &mut *p_trading_account_password_update, n_request_id)
+        }
+    }
+    pub fn req_user_auth_method(&mut self, p_req_user_auth_method: &mut CThostFtdcReqUserAuthMethodField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqUserAuthMethod)(self as *mut CThostFtdcTraderApi, &mut *p_req_user_auth_method, n_request_id)
+        }
+    }
+    pub fn req_gen_user_captcha(&mut self, p_req_gen_user_captcha: &mut CThostFtdcReqGenUserCaptchaField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqGenUserCaptcha)(self as *mut CThostFtdcTraderApi, &mut *p_req_gen_user_captcha, n_request_id)
+        }
+    }
+    pub fn req_gen_user_text(&mut self, p_req_gen_user_text: &mut CThostFtdcReqGenUserTextField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqGenUserText)(self as *mut CThostFtdcTraderApi, &mut *p_req_gen_user_text, n_request_id)
+        }
+    }
+    pub fn req_user_login_with_captcha(&mut self, p_req_user_login_with_captcha: &mut CThostFtdcReqUserLoginWithCaptchaField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqUserLoginWithCaptcha)(self as *mut CThostFtdcTraderApi, &mut *p_req_user_login_with_captcha, n_request_id)
+        }
+    }
+    pub fn req_user_login_with_text(&mut self, p_req_user_login_with_text: &mut CThostFtdcReqUserLoginWithTextField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqUserLoginWithText)(self as *mut CThostFtdcTraderApi, &mut *p_req_user_login_with_text, n_request_id)
+        }
+    }
+    pub fn req_user_login_with_otp(&mut self, p_req_user_login_with_otp: &mut CThostFtdcReqUserLoginWithOTPField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqUserLoginWithOTP)(self as *mut CThostFtdcTraderApi, &mut *p_req_user_login_with_otp, n_request_id)
+        }
+    }
+    pub fn req_order_insert(&mut self, p_input_order: &mut CThostFtdcInputOrderField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqOrderInsert)(self as *mut CThostFtdcTraderApi, &mut *p_input_order, n_request_id)
+        }
+    }
+    pub fn req_parked_order_insert(&mut self, p_parked_order: &mut CThostFtdcParkedOrderField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqParkedOrderInsert)(self as *mut CThostFtdcTraderApi, &mut *p_parked_order, n_request_id)
+        }
+    }
+    pub fn req_parked_order_action(&mut self, p_parked_order_action: &mut CThostFtdcParkedOrderActionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqParkedOrderAction)(self as *mut CThostFtdcTraderApi, &mut *p_parked_order_action, n_request_id)
+        }
+    }
+    pub fn req_order_action(&mut self, p_input_order_action: &mut CThostFtdcInputOrderActionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqOrderAction)(self as *mut CThostFtdcTraderApi, &mut *p_input_order_action, n_request_id)
+        }
+    }
+    pub fn req_qry_max_order_volume(&mut self, p_qry_max_order_volume: &mut CThostFtdcQryMaxOrderVolumeField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryMaxOrderVolume)(self as *mut CThostFtdcTraderApi, &mut *p_qry_max_order_volume, n_request_id)
+        }
+    }
+    pub fn req_settlement_info_confirm(&mut self, p_settlement_info_confirm: &mut CThostFtdcSettlementInfoConfirmField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqSettlementInfoConfirm)(self as *mut CThostFtdcTraderApi, &mut *p_settlement_info_confirm, n_request_id)
+        }
+    }
+    pub fn req_remove_parked_order(&mut self, p_remove_parked_order: &mut CThostFtdcRemoveParkedOrderField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqRemoveParkedOrder)(self as *mut CThostFtdcTraderApi, &mut *p_remove_parked_order, n_request_id)
+        }
+    }
+    pub fn req_remove_parked_order_action(&mut self, p_remove_parked_order_action: &mut CThostFtdcRemoveParkedOrderActionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqRemoveParkedOrderAction)(self as *mut CThostFtdcTraderApi, &mut *p_remove_parked_order_action, n_request_id)
+        }
+    }
+    pub fn req_exec_order_insert(&mut self, p_input_exec_order: &mut CThostFtdcInputExecOrderField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqExecOrderInsert)(self as *mut CThostFtdcTraderApi, &mut *p_input_exec_order, n_request_id)
+        }
+    }
+    pub fn req_exec_order_action(&mut self, p_input_exec_order_action: &mut CThostFtdcInputExecOrderActionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqExecOrderAction)(self as *mut CThostFtdcTraderApi, &mut *p_input_exec_order_action, n_request_id)
+        }
+    }
+    pub fn req_for_quote_insert(&mut self, p_input_for_quote: &mut CThostFtdcInputForQuoteField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqForQuoteInsert)(self as *mut CThostFtdcTraderApi, &mut *p_input_for_quote, n_request_id)
+        }
+    }
+    pub fn req_quote_insert(&mut self, p_input_quote: &mut CThostFtdcInputQuoteField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQuoteInsert)(self as *mut CThostFtdcTraderApi, &mut *p_input_quote, n_request_id)
+        }
+    }
+    pub fn req_quote_action(&mut self, p_input_quote_action: &mut CThostFtdcInputQuoteActionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQuoteAction)(self as *mut CThostFtdcTraderApi, &mut *p_input_quote_action, n_request_id)
+        }
+    }
+    pub fn req_batch_order_action(&mut self, p_input_batch_order_action: &mut CThostFtdcInputBatchOrderActionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqBatchOrderAction)(self as *mut CThostFtdcTraderApi, &mut *p_input_batch_order_action, n_request_id)
+        }
+    }
+    pub fn req_option_self_close_insert(&mut self, p_input_option_self_close: &mut CThostFtdcInputOptionSelfCloseField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqOptionSelfCloseInsert)(self as *mut CThostFtdcTraderApi, &mut *p_input_option_self_close, n_request_id)
+        }
+    }
+    pub fn req_option_self_close_action(&mut self, p_input_option_self_close_action: &mut CThostFtdcInputOptionSelfCloseActionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqOptionSelfCloseAction)(self as *mut CThostFtdcTraderApi, &mut *p_input_option_self_close_action, n_request_id)
+        }
+    }
+    pub fn req_comb_action_insert(&mut self, p_input_comb_action: &mut CThostFtdcInputCombActionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqCombActionInsert)(self as *mut CThostFtdcTraderApi, &mut *p_input_comb_action, n_request_id)
+        }
+    }
+    pub fn req_qry_order(&mut self, p_qry_order: &mut CThostFtdcQryOrderField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryOrder)(self as *mut CThostFtdcTraderApi, &mut *p_qry_order, n_request_id)
+        }
+    }
+    pub fn req_qry_trade(&mut self, p_qry_trade: &mut CThostFtdcQryTradeField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryTrade)(self as *mut CThostFtdcTraderApi, &mut *p_qry_trade, n_request_id)
+        }
+    }
+    pub fn req_qry_investor_position(&mut self, p_qry_investor_position: &mut CThostFtdcQryInvestorPositionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInvestorPosition)(self as *mut CThostFtdcTraderApi, &mut *p_qry_investor_position, n_request_id)
+        }
+    }
+    pub fn req_qry_trading_account(&mut self, p_qry_trading_account: &mut CThostFtdcQryTradingAccountField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryTradingAccount)(self as *mut CThostFtdcTraderApi, &mut *p_qry_trading_account, n_request_id)
+        }
+    }
+    pub fn req_qry_investor(&mut self, p_qry_investor: &mut CThostFtdcQryInvestorField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInvestor)(self as *mut CThostFtdcTraderApi, &mut *p_qry_investor, n_request_id)
+        }
+    }
+    pub fn req_qry_trading_code(&mut self, p_qry_trading_code: &mut CThostFtdcQryTradingCodeField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryTradingCode)(self as *mut CThostFtdcTraderApi, &mut *p_qry_trading_code, n_request_id)
+        }
+    }
+    pub fn req_qry_instrument_margin_rate(&mut self, p_qry_instrument_margin_rate: &mut CThostFtdcQryInstrumentMarginRateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInstrumentMarginRate)(self as *mut CThostFtdcTraderApi, &mut *p_qry_instrument_margin_rate, n_request_id)
+        }
+    }
+    pub fn req_qry_instrument_commission_rate(&mut self, p_qry_instrument_commission_rate: &mut CThostFtdcQryInstrumentCommissionRateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInstrumentCommissionRate)(self as *mut CThostFtdcTraderApi, &mut *p_qry_instrument_commission_rate, n_request_id)
+        }
+    }
+    pub fn req_qry_exchange(&mut self, p_qry_exchange: &mut CThostFtdcQryExchangeField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryExchange)(self as *mut CThostFtdcTraderApi, &mut *p_qry_exchange, n_request_id)
+        }
+    }
+    pub fn req_qry_product(&mut self, p_qry_product: &mut CThostFtdcQryProductField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryProduct)(self as *mut CThostFtdcTraderApi, &mut *p_qry_product, n_request_id)
+        }
+    }
+    pub fn req_qry_instrument(&mut self, p_qry_instrument: &mut CThostFtdcQryInstrumentField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInstrument)(self as *mut CThostFtdcTraderApi, &mut *p_qry_instrument, n_request_id)
+        }
+    }
+    pub fn req_qry_depth_market_data(&mut self, p_qry_depth_market_data: &mut CThostFtdcQryDepthMarketDataField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryDepthMarketData)(self as *mut CThostFtdcTraderApi, &mut *p_qry_depth_market_data, n_request_id)
+        }
+    }
+    pub fn req_qry_trader_offer(&mut self, p_qry_trader_offer: &mut CThostFtdcQryTraderOfferField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryTraderOffer)(self as *mut CThostFtdcTraderApi, &mut *p_qry_trader_offer, n_request_id)
+        }
+    }
+    pub fn req_qry_settlement_info(&mut self, p_qry_settlement_info: &mut CThostFtdcQrySettlementInfoField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySettlementInfo)(self as *mut CThostFtdcTraderApi, &mut *p_qry_settlement_info, n_request_id)
+        }
+    }
+    pub fn req_qry_transfer_bank(&mut self, p_qry_transfer_bank: &mut CThostFtdcQryTransferBankField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryTransferBank)(self as *mut CThostFtdcTraderApi, &mut *p_qry_transfer_bank, n_request_id)
+        }
+    }
+    pub fn req_qry_investor_position_detail(&mut self, p_qry_investor_position_detail: &mut CThostFtdcQryInvestorPositionDetailField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInvestorPositionDetail)(self as *mut CThostFtdcTraderApi, &mut *p_qry_investor_position_detail, n_request_id)
+        }
+    }
+    pub fn req_qry_notice(&mut self, p_qry_notice: &mut CThostFtdcQryNoticeField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryNotice)(self as *mut CThostFtdcTraderApi, &mut *p_qry_notice, n_request_id)
+        }
+    }
+    pub fn req_qry_settlement_info_confirm(&mut self, p_qry_settlement_info_confirm: &mut CThostFtdcQrySettlementInfoConfirmField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySettlementInfoConfirm)(self as *mut CThostFtdcTraderApi, &mut *p_qry_settlement_info_confirm, n_request_id)
+        }
+    }
+    pub fn req_qry_investor_position_combine_detail(&mut self, p_qry_investor_position_combine_detail: &mut CThostFtdcQryInvestorPositionCombineDetailField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInvestorPositionCombineDetail)(self as *mut CThostFtdcTraderApi, &mut *p_qry_investor_position_combine_detail, n_request_id)
+        }
+    }
+    pub fn req_qry_cfmmc_trading_account_key(&mut self, p_qry_cfmmc_trading_account_key: &mut CThostFtdcQryCFMMCTradingAccountKeyField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryCFMMCTradingAccountKey)(self as *mut CThostFtdcTraderApi, &mut *p_qry_cfmmc_trading_account_key, n_request_id)
+        }
+    }
+    pub fn req_qry_e_warrant_offset(&mut self, p_qry_e_warrant_offset: &mut CThostFtdcQryEWarrantOffsetField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryEWarrantOffset)(self as *mut CThostFtdcTraderApi, &mut *p_qry_e_warrant_offset, n_request_id)
+        }
+    }
+    pub fn req_qry_investor_product_group_margin(&mut self, p_qry_investor_product_group_margin: &mut CThostFtdcQryInvestorProductGroupMarginField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInvestorProductGroupMargin)(self as *mut CThostFtdcTraderApi, &mut *p_qry_investor_product_group_margin, n_request_id)
+        }
+    }
+    pub fn req_qry_exchange_margin_rate(&mut self, p_qry_exchange_margin_rate: &mut CThostFtdcQryExchangeMarginRateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryExchangeMarginRate)(self as *mut CThostFtdcTraderApi, &mut *p_qry_exchange_margin_rate, n_request_id)
+        }
+    }
+    pub fn req_qry_exchange_margin_rate_adjust(&mut self, p_qry_exchange_margin_rate_adjust: &mut CThostFtdcQryExchangeMarginRateAdjustField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryExchangeMarginRateAdjust)(self as *mut CThostFtdcTraderApi, &mut *p_qry_exchange_margin_rate_adjust, n_request_id)
+        }
+    }
+    pub fn req_qry_exchange_rate(&mut self, p_qry_exchange_rate: &mut CThostFtdcQryExchangeRateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryExchangeRate)(self as *mut CThostFtdcTraderApi, &mut *p_qry_exchange_rate, n_request_id)
+        }
+    }
+    pub fn req_qry_sec_agent_acid_map(&mut self, p_qry_sec_agent_acid_map: &mut CThostFtdcQrySecAgentACIDMapField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySecAgentACIDMap)(self as *mut CThostFtdcTraderApi, &mut *p_qry_sec_agent_acid_map, n_request_id)
+        }
+    }
+    pub fn req_qry_product_exch_rate(&mut self, p_qry_product_exch_rate: &mut CThostFtdcQryProductExchRateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryProductExchRate)(self as *mut CThostFtdcTraderApi, &mut *p_qry_product_exch_rate, n_request_id)
+        }
+    }
+    pub fn req_qry_product_group(&mut self, p_qry_product_group: &mut CThostFtdcQryProductGroupField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryProductGroup)(self as *mut CThostFtdcTraderApi, &mut *p_qry_product_group, n_request_id)
+        }
+    }
+    pub fn req_qry_mm_instrument_commission_rate(&mut self, p_qry_mm_instrument_commission_rate: &mut CThostFtdcQryMMInstrumentCommissionRateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryMMInstrumentCommissionRate)(self as *mut CThostFtdcTraderApi, &mut *p_qry_mm_instrument_commission_rate, n_request_id)
+        }
+    }
+    pub fn req_qry_mm_option_instr_comm_rate(&mut self, p_qry_mm_option_instr_comm_rate: &mut CThostFtdcQryMMOptionInstrCommRateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryMMOptionInstrCommRate)(self as *mut CThostFtdcTraderApi, &mut *p_qry_mm_option_instr_comm_rate, n_request_id)
+        }
+    }
+    pub fn req_qry_instrument_order_comm_rate(&mut self, p_qry_instrument_order_comm_rate: &mut CThostFtdcQryInstrumentOrderCommRateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInstrumentOrderCommRate)(self as *mut CThostFtdcTraderApi, &mut *p_qry_instrument_order_comm_rate, n_request_id)
+        }
+    }
+    pub fn req_qry_sec_agent_trading_account(&mut self, p_qry_trading_account: &mut CThostFtdcQryTradingAccountField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySecAgentTradingAccount)(self as *mut CThostFtdcTraderApi, &mut *p_qry_trading_account, n_request_id)
+        }
+    }
+    pub fn req_qry_sec_agent_check_mode(&mut self, p_qry_sec_agent_check_mode: &mut CThostFtdcQrySecAgentCheckModeField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySecAgentCheckMode)(self as *mut CThostFtdcTraderApi, &mut *p_qry_sec_agent_check_mode, n_request_id)
+        }
+    }
+    pub fn req_qry_sec_agent_trade_info(&mut self, p_qry_sec_agent_trade_info: &mut CThostFtdcQrySecAgentTradeInfoField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySecAgentTradeInfo)(self as *mut CThostFtdcTraderApi, &mut *p_qry_sec_agent_trade_info, n_request_id)
+        }
+    }
+    pub fn req_qry_option_instr_trade_cost(&mut self, p_qry_option_instr_trade_cost: &mut CThostFtdcQryOptionInstrTradeCostField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryOptionInstrTradeCost)(self as *mut CThostFtdcTraderApi, &mut *p_qry_option_instr_trade_cost, n_request_id)
+        }
+    }
+    pub fn req_qry_option_instr_comm_rate(&mut self, p_qry_option_instr_comm_rate: &mut CThostFtdcQryOptionInstrCommRateField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryOptionInstrCommRate)(self as *mut CThostFtdcTraderApi, &mut *p_qry_option_instr_comm_rate, n_request_id)
+        }
+    }
+    pub fn req_qry_exec_order(&mut self, p_qry_exec_order: &mut CThostFtdcQryExecOrderField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryExecOrder)(self as *mut CThostFtdcTraderApi, &mut *p_qry_exec_order, n_request_id)
+        }
+    }
+    pub fn req_qry_for_quote(&mut self, p_qry_for_quote: &mut CThostFtdcQryForQuoteField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryForQuote)(self as *mut CThostFtdcTraderApi, &mut *p_qry_for_quote, n_request_id)
+        }
+    }
+    pub fn req_qry_quote(&mut self, p_qry_quote: &mut CThostFtdcQryQuoteField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryQuote)(self as *mut CThostFtdcTraderApi, &mut *p_qry_quote, n_request_id)
+        }
+    }
+    pub fn req_qry_option_self_close(&mut self, p_qry_option_self_close: &mut CThostFtdcQryOptionSelfCloseField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryOptionSelfClose)(self as *mut CThostFtdcTraderApi, &mut *p_qry_option_self_close, n_request_id)
+        }
+    }
+    pub fn req_qry_invest_unit(&mut self, p_qry_invest_unit: &mut CThostFtdcQryInvestUnitField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInvestUnit)(self as *mut CThostFtdcTraderApi, &mut *p_qry_invest_unit, n_request_id)
+        }
+    }
+    pub fn req_qry_comb_instrument_guard(&mut self, p_qry_comb_instrument_guard: &mut CThostFtdcQryCombInstrumentGuardField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryCombInstrumentGuard)(self as *mut CThostFtdcTraderApi, &mut *p_qry_comb_instrument_guard, n_request_id)
+        }
+    }
+    pub fn req_qry_comb_action(&mut self, p_qry_comb_action: &mut CThostFtdcQryCombActionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryCombAction)(self as *mut CThostFtdcTraderApi, &mut *p_qry_comb_action, n_request_id)
+        }
+    }
+    pub fn req_qry_transfer_serial(&mut self, p_qry_transfer_serial: &mut CThostFtdcQryTransferSerialField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryTransferSerial)(self as *mut CThostFtdcTraderApi, &mut *p_qry_transfer_serial, n_request_id)
+        }
+    }
+    pub fn req_qry_accountregister(&mut self, p_qry_accountregister: &mut CThostFtdcQryAccountregisterField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryAccountregister)(self as *mut CThostFtdcTraderApi, &mut *p_qry_accountregister, n_request_id)
+        }
+    }
+    pub fn req_qry_contract_bank(&mut self, p_qry_contract_bank: &mut CThostFtdcQryContractBankField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryContractBank)(self as *mut CThostFtdcTraderApi, &mut *p_qry_contract_bank, n_request_id)
+        }
+    }
+    pub fn req_qry_parked_order(&mut self, p_qry_parked_order: &mut CThostFtdcQryParkedOrderField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryParkedOrder)(self as *mut CThostFtdcTraderApi, &mut *p_qry_parked_order, n_request_id)
+        }
+    }
+    pub fn req_qry_parked_order_action(&mut self, p_qry_parked_order_action: &mut CThostFtdcQryParkedOrderActionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryParkedOrderAction)(self as *mut CThostFtdcTraderApi, &mut *p_qry_parked_order_action, n_request_id)
+        }
+    }
+    pub fn req_qry_trading_notice(&mut self, p_qry_trading_notice: &mut CThostFtdcQryTradingNoticeField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryTradingNotice)(self as *mut CThostFtdcTraderApi, &mut *p_qry_trading_notice, n_request_id)
+        }
+    }
+    pub fn req_qry_broker_trading_params(&mut self, p_qry_broker_trading_params: &mut CThostFtdcQryBrokerTradingParamsField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryBrokerTradingParams)(self as *mut CThostFtdcTraderApi, &mut *p_qry_broker_trading_params, n_request_id)
+        }
+    }
+    pub fn req_qry_broker_trading_algos(&mut self, p_qry_broker_trading_algos: &mut CThostFtdcQryBrokerTradingAlgosField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryBrokerTradingAlgos)(self as *mut CThostFtdcTraderApi, &mut *p_qry_broker_trading_algos, n_request_id)
+        }
+    }
+    pub fn req_query_cfmmc_trading_account_token(&mut self, p_query_cfmmc_trading_account_token: &mut CThostFtdcQueryCFMMCTradingAccountTokenField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQueryCFMMCTradingAccountToken)(self as *mut CThostFtdcTraderApi, &mut *p_query_cfmmc_trading_account_token, n_request_id)
+        }
+    }
+    pub fn req_from_bank_to_future_by_future(&mut self, p_req_transfer: &mut CThostFtdcReqTransferField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqFromBankToFutureByFuture)(self as *mut CThostFtdcTraderApi, &mut *p_req_transfer, n_request_id)
+        }
+    }
+    pub fn req_from_future_to_bank_by_future(&mut self, p_req_transfer: &mut CThostFtdcReqTransferField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqFromFutureToBankByFuture)(self as *mut CThostFtdcTraderApi, &mut *p_req_transfer, n_request_id)
+        }
+    }
+    pub fn req_query_bank_account_money_by_future(&mut self, p_req_query_account: &mut CThostFtdcReqQueryAccountField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQueryBankAccountMoneyByFuture)(self as *mut CThostFtdcTraderApi, &mut *p_req_query_account, n_request_id)
+        }
+    }
+    pub fn req_qry_classified_instrument(&mut self, p_qry_classified_instrument: &mut CThostFtdcQryClassifiedInstrumentField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryClassifiedInstrument)(self as *mut CThostFtdcTraderApi, &mut *p_qry_classified_instrument, n_request_id)
+        }
+    }
+    pub fn req_qry_comb_promotion_param(&mut self, p_qry_comb_promotion_param: &mut CThostFtdcQryCombPromotionParamField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryCombPromotionParam)(self as *mut CThostFtdcTraderApi, &mut *p_qry_comb_promotion_param, n_request_id)
+        }
+    }
+    pub fn req_qry_risk_settle_invst_position(&mut self, p_qry_risk_settle_invst_position: &mut CThostFtdcQryRiskSettleInvstPositionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryRiskSettleInvstPosition)(self as *mut CThostFtdcTraderApi, &mut *p_qry_risk_settle_invst_position, n_request_id)
+        }
+    }
+    pub fn req_qry_risk_settle_product_status(&mut self, p_qry_risk_settle_product_status: &mut CThostFtdcQryRiskSettleProductStatusField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryRiskSettleProductStatus)(self as *mut CThostFtdcTraderApi, &mut *p_qry_risk_settle_product_status, n_request_id)
+        }
+    }
+    pub fn req_qry_spbm_future_parameter(&mut self, p_qry_spbm_future_parameter: &mut CThostFtdcQrySPBMFutureParameterField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySPBMFutureParameter)(self as *mut CThostFtdcTraderApi, &mut *p_qry_spbm_future_parameter, n_request_id)
+        }
+    }
+    pub fn req_qry_spbm_option_parameter(&mut self, p_qry_spbm_option_parameter: &mut CThostFtdcQrySPBMOptionParameterField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySPBMOptionParameter)(self as *mut CThostFtdcTraderApi, &mut *p_qry_spbm_option_parameter, n_request_id)
+        }
+    }
+    pub fn req_qry_spbm_intra_parameter(&mut self, p_qry_spbm_intra_parameter: &mut CThostFtdcQrySPBMIntraParameterField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySPBMIntraParameter)(self as *mut CThostFtdcTraderApi, &mut *p_qry_spbm_intra_parameter, n_request_id)
+        }
+    }
+    pub fn req_qry_spbm_inter_parameter(&mut self, p_qry_spbm_inter_parameter: &mut CThostFtdcQrySPBMInterParameterField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySPBMInterParameter)(self as *mut CThostFtdcTraderApi, &mut *p_qry_spbm_inter_parameter, n_request_id)
+        }
+    }
+    pub fn req_qry_spbm_portf_definition(&mut self, p_qry_spbm_portf_definition: &mut CThostFtdcQrySPBMPortfDefinitionField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySPBMPortfDefinition)(self as *mut CThostFtdcTraderApi, &mut *p_qry_spbm_portf_definition, n_request_id)
+        }
+    }
+    pub fn req_qry_spbm_investor_portf_def(&mut self, p_qry_spbm_investor_portf_def: &mut CThostFtdcQrySPBMInvestorPortfDefField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQrySPBMInvestorPortfDef)(self as *mut CThostFtdcTraderApi, &mut *p_qry_spbm_investor_portf_def, n_request_id)
+        }
+    }
+    pub fn req_qry_investor_portf_margin_ratio(&mut self, p_qry_investor_portf_margin_ratio: &mut CThostFtdcQryInvestorPortfMarginRatioField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInvestorPortfMarginRatio)(self as *mut CThostFtdcTraderApi, &mut *p_qry_investor_portf_margin_ratio, n_request_id)
+        }
+    }
+    pub fn req_qry_investor_prod_spbm_detail(&mut self, p_qry_investor_prod_spbm_detail: &mut CThostFtdcQryInvestorProdSPBMDetailField, n_request_id: std::os::raw::c_int) -> std::os::raw::c_int {
+        unsafe {
+            ((*(*self).vtable_).CThostFtdcTraderApi_ReqQryInvestorProdSPBMDetail)(self as *mut CThostFtdcTraderApi, &mut *p_qry_investor_prod_spbm_detail, n_request_id)
+        }
+    }
 
-    pub fn start(&mut self, p_listener: *const dyn YDListenerTrait) -> bool {
-        let p_listener = Box::into_raw(Box::new((&YD_LISTENER_VTABLE, p_listener)));
-        unsafe {
-            ((*(*self).vtable_).YDApi_start)(self as *mut YDApi, p_listener as *mut YDListener)
-        }
-    }
-    pub fn start_destroy(&mut self) -> () {
-        unsafe {
-            ((*(*self).vtable_).YDApi_startDestroy)(self as *mut YDApi)
-        }
-    }
-    pub fn disconnect(&mut self) -> () {
-        unsafe {
-            ((*(*self).vtable_).YDApi_disconnect)(self as *mut YDApi)
-        }
-    }
-    pub fn login(&mut self, username: std::ffi::CString, password: std::ffi::CString, app_id: std::ffi::CString, auth_code: std::ffi::CString) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_login)(self as *mut YDApi, username.as_ptr(), password.as_ptr(), app_id.as_ptr(), auth_code.as_ptr())
-        }
-    }
-    pub fn insert_order(&mut self, p_input_order: &mut YDInputOrder, p_instrument: &mut YDInstrument, p_account: &mut YDAccount) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_insertOrder)(self as *mut YDApi, &mut *p_input_order, &mut *p_instrument, &mut *p_account)
-        }
-    }
-    pub fn cancel_order(&mut self, p_cancel_order: &mut YDCancelOrder, p_exchange: &mut YDExchange, p_account: &mut YDAccount) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_cancelOrder)(self as *mut YDApi, &mut *p_cancel_order, &mut *p_exchange, &mut *p_account)
-        }
-    }
-    pub fn insert_quote(&mut self, p_input_quote: &mut YDInputQuote, p_instrument: &mut YDInstrument, p_account: &mut YDAccount) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_insertQuote)(self as *mut YDApi, &mut *p_input_quote, &mut *p_instrument, &mut *p_account)
-        }
-    }
-    pub fn cancel_quote(&mut self, p_cancel_quote: &mut YDCancelQuote, p_exchange: &mut YDExchange, p_account: &mut YDAccount) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_cancelQuote)(self as *mut YDApi, &mut *p_cancel_quote, &mut *p_exchange, &mut *p_account)
-        }
-    }
-    pub fn insert_comb_position_order(&mut self, p_input_order: &mut YDInputOrder, p_comb_position_def: &mut YDCombPositionDef, p_account: &mut YDAccount) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_insertCombPositionOrder)(self as *mut YDApi, &mut *p_input_order, &mut *p_comb_position_def, &mut *p_account)
-        }
-    }
-    pub fn insert_option_exec_together_order(&mut self, p_input_order: &mut YDInputOrder, p_instrument: &mut YDInstrument, p_instrument_2: &mut YDInstrument, p_account: &mut YDAccount) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_insertOptionExecTogetherOrder)(self as *mut YDApi, &mut *p_input_order, &mut *p_instrument, &mut *p_instrument_2, &mut *p_account)
-        }
-    }
-    // insert_multi_orders // Ignored (MethodFlavor::ApiTrait)
-    // cancel_multi_orders // Ignored (MethodFlavor::ApiTrait)
-    // insert_multi_quotes // Ignored (MethodFlavor::ApiTrait)
-    // cancel_multi_quotes // Ignored (MethodFlavor::ApiTrait)
-    pub fn subscribe(&mut self, p_instrument: &mut YDInstrument) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_subscribe)(self as *mut YDApi, &mut *p_instrument)
-        }
-    }
-    pub fn unsubscribe(&mut self, p_instrument: &mut YDInstrument) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_unsubscribe)(self as *mut YDApi, &mut *p_instrument)
-        }
-    }
-    pub fn set_trading_right(&mut self, p_account: &mut YDAccount, p_instrument: &mut YDInstrument, p_product: &mut YDProduct, p_exchange: &mut YDExchange, trading_right: std::os::raw::c_int, request_id: std::os::raw::c_int, trading_right_source: std::os::raw::c_int) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_setTradingRight)(self as *mut YDApi, &mut *p_account, &mut *p_instrument, &mut *p_product, &mut *p_exchange, trading_right, request_id, trading_right_source)
-        }
-    }
-    pub fn alter_money(&mut self, p_account: &mut YDAccount, alter_money_type: std::os::raw::c_int, alter_value: f64, request_id: std::os::raw::c_int) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_alterMoney)(self as *mut YDApi, &mut *p_account, alter_money_type, alter_value, request_id)
-        }
-    }
-    pub fn update_margin_rate(&mut self, p_update_margin_rate: &mut YDUpdateMarginRate, request_id: std::os::raw::c_int) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_updateMarginRate)(self as *mut YDApi, &mut *p_update_margin_rate, request_id)
-        }
-    }
-    pub fn update_message_commission_config(&mut self, p_update_message_commission_config: &mut YDUpdateMessageCommissionConfig, request_id: std::os::raw::c_int) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_updateMessageCommissionConfig)(self as *mut YDApi, &mut *p_update_message_commission_config, request_id)
-        }
-    }
-    pub fn adjust_account_margin_model_info(&mut self, p_account_margin_model_info: &mut YDAccountMarginModelInfo, request_id: std::os::raw::c_int) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_adjustAccountMarginModelInfo)(self as *mut YDApi, &mut *p_account_margin_model_info, request_id)
-        }
-    }
-    pub fn update_spot_position(&mut self, p_account: &mut YDAccount, p_instrument: &mut YDInstrument, position: std::os::raw::c_int, request_id: std::os::raw::c_int) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_updateSpotPosition)(self as *mut YDApi, &mut *p_account, &mut *p_instrument, position, request_id)
-        }
-    }
-    pub fn update_spot_alive(&mut self, p_exchange: &mut YDExchange, request_id: std::os::raw::c_int) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_updateSpotAlive)(self as *mut YDApi, &mut *p_exchange, request_id)
-        }
-    }
-    pub fn update_holding_external_frozen(&mut self, p_account: &mut YDAccount, p_instrument: &mut YDInstrument, external_sell_frozen: std::os::raw::c_int, request_id: std::os::raw::c_int) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_updateHoldingExternalFrozen)(self as *mut YDApi, &mut *p_account, &mut *p_instrument, external_sell_frozen, request_id)
-        }
-    }
-    pub fn change_password(&mut self, username: std::ffi::CString, old_password: std::ffi::CString, new_password: std::ffi::CString, request_id: std::os::raw::c_int) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_changePassword)(self as *mut YDApi, username.as_ptr(), old_password.as_ptr(), new_password.as_ptr(), request_id)
-        }
-    }
-    pub fn select_connections(&mut self, p_exchange: &mut YDExchange, connection_list: u64, request_id: std::os::raw::c_int) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_selectConnections)(self as *mut YDApi, &mut *p_exchange, connection_list, request_id)
-        }
-    }
-    pub fn has_finished_init(&mut self) -> bool {
-        unsafe {
-            ((*(*self).vtable_).YDApi_hasFinishedInit)(self as *mut YDApi)
-        }
-    }
-    pub fn get_system_param_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getSystemParamCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_system_param(&mut self, pos: std::os::raw::c_int) -> *const YDSystemParam {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getSystemParam)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_system_param_by_name(&mut self, name: std::ffi::CString, target: std::ffi::CString) -> *const YDSystemParam {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getSystemParamByName)(self as *mut YDApi, name.as_ptr(), target.as_ptr())
-        }
-    }
-    pub fn get_exchange_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getExchangeCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_exchange(&mut self, pos: std::os::raw::c_int) -> *const YDExchange {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getExchange)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_exchange_by_id(&mut self, exchange_id: std::ffi::CString) -> *const YDExchange {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getExchangeByID)(self as *mut YDApi, exchange_id.as_ptr())
-        }
-    }
-    pub fn get_product_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getProductCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_product(&mut self, pos: std::os::raw::c_int) -> *const YDProduct {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getProduct)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_product_by_id(&mut self, product_id: std::ffi::CString) -> *const YDProduct {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getProductByID)(self as *mut YDApi, product_id.as_ptr())
-        }
-    }
-    pub fn get_instrument_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getInstrumentCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_instrument(&mut self, pos: std::os::raw::c_int) -> *const YDInstrument {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getInstrument)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_instrument_by_id(&mut self, instrument_id: std::ffi::CString) -> *const YDInstrument {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getInstrumentByID)(self as *mut YDApi, instrument_id.as_ptr())
-        }
-    }
-    pub fn get_comb_position_def_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getCombPositionDefCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_comb_position_def(&mut self, pos: std::os::raw::c_int) -> *const YDCombPositionDef {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getCombPositionDef)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_comb_position_def_by_id(&mut self, comb_position_id: std::ffi::CString, comb_hedge_flag: std::os::raw::c_int) -> *const YDCombPositionDef {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getCombPositionDefByID)(self as *mut YDApi, comb_position_id.as_ptr(), comb_hedge_flag)
-        }
-    }
-    pub fn get_account_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getAccountCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_account(&mut self, pos: std::os::raw::c_int) -> *const YDAccount {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getAccount)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_account_by_id(&mut self, account_id: std::ffi::CString) -> *const YDAccount {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getAccountByID)(self as *mut YDApi, account_id.as_ptr())
-        }
-    }
-    pub fn get_my_account(&mut self) -> *const YDAccount {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getMyAccount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_pre_position_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getPrePositionCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_pre_position(&mut self, pos: std::os::raw::c_int) -> *const YDPrePosition {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getPrePosition)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_pre_holding_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getPreHoldingCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_pre_holding(&mut self, pos: std::os::raw::c_int) -> *const YDPreHolding {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getPreHolding)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_spot_pre_position_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getSpotPrePositionCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_spot_pre_position(&mut self, pos: std::os::raw::c_int) -> *const YDSpotPrePosition {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getSpotPrePosition)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_margin_rate_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getMarginRateCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_margin_rate(&mut self, pos: std::os::raw::c_int) -> *const YDMarginRate {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getMarginRate)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_commission_rate_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getCommissionRateCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_commission_rate(&mut self, pos: std::os::raw::c_int) -> *const YDCommissionRate {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getCommissionRate)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_cash_commission_rate_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getCashCommissionRateCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_cash_commission_rate(&mut self, pos: std::os::raw::c_int) -> *const YDCashCommissionRate {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getCashCommissionRate)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_message_commission_rate_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getMessageCommissionRateCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_message_commission_rate(&mut self, pos: std::os::raw::c_int) -> *const YDMessageCommissionRate {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getMessageCommissionRate)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_margin_model_param_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getMarginModelParamCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_margin_model_param(&mut self, pos: std::os::raw::c_int) -> *const YDMarginModelParam {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getMarginModelParam)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn get_account_exchange_info(&mut self, p_exchange: &mut YDExchange, p_account: &mut YDAccount) -> *const YDAccountExchangeInfo {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getAccountExchangeInfo)(self as *mut YDApi, &mut *p_exchange, &mut *p_account)
-        }
-    }
-    pub fn get_account_product_info(&mut self, p_product: &mut YDProduct, p_account: &mut YDAccount) -> *const YDAccountProductInfo {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getAccountProductInfo)(self as *mut YDApi, &mut *p_product, &mut *p_account)
-        }
-    }
-    pub fn get_account_instrument_info(&mut self, p_instrument: &mut YDInstrument, p_account: &mut YDAccount) -> *const YDAccountInstrumentInfo {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getAccountInstrumentInfo)(self as *mut YDApi, &mut *p_instrument, &mut *p_account)
-        }
-    }
-    pub fn get_instrument_margin_rate(&mut self, p_instrument: &mut YDInstrument, hedge_flag: std::os::raw::c_int, p_account: &mut YDAccount) -> *const YDMarginRate {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getInstrumentMarginRate)(self as *mut YDApi, &mut *p_instrument, hedge_flag, &mut *p_account)
-        }
-    }
-    pub fn get_instrument_commission_rate(&mut self, p_instrument: &mut YDInstrument, hedge_flag: std::os::raw::c_int, p_account: &mut YDAccount) -> *const YDCommissionRate {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getInstrumentCommissionRate)(self as *mut YDApi, &mut *p_instrument, hedge_flag, &mut *p_account)
-        }
-    }
-    pub fn get_instrument_cash_commission_rate(&mut self, p_instrument: &mut YDInstrument, yd_order_flag: std::os::raw::c_int, direction: std::os::raw::c_int, p_account: &mut YDAccount) -> *const YDCashCommissionRate {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getInstrumentCashCommissionRate)(self as *mut YDApi, &mut *p_instrument, yd_order_flag, direction, &mut *p_account)
-        }
-    }
-    pub fn get_account_margin_model_info(&mut self, margin_model_id: std::os::raw::c_int, p_account: &mut YDAccount) -> *const YDAccountMarginModelInfo {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getAccountMarginModelInfo)(self as *mut YDApi, margin_model_id, &mut *p_account)
-        }
-    }
-    pub fn get_general_risk_param_count(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getGeneralRiskParamCount)(self as *mut YDApi)
-        }
-    }
-    pub fn get_general_risk_param(&mut self, pos: std::os::raw::c_int) -> *const YDGeneralRiskParam {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getGeneralRiskParam)(self as *mut YDApi, pos)
-        }
-    }
-    pub fn write_log(&mut self, format: std::ffi::CString) -> () {
-        unsafe {
-            ((*(*self).vtable_).YDApi_writeLog)(self as *mut YDApi, format.as_ptr())
-        }
-    }
-    pub fn get_version(&mut self) -> *const std::os::raw::c_char {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getVersion)(self as *mut YDApi)
-        }
-    }
-/* Param: yd_packet_type */    pub fn get_client_packet_header(&mut self, type_: YDApi_YDPacketType, p_header: u8, len: std::os::raw::c_int, protocol_version: std::os::raw::c_int) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getClientPacketHeader)(self as *mut YDApi, type_, p_header as *mut ::std::os::raw::c_uchar, len, protocol_version)
-        }
-    }
-    pub fn get_trading_day(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getTradingDay)(self as *mut YDApi)
-        }
-    }
-    pub fn get_session_id(&mut self) -> std::os::raw::c_int {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getSessionID)(self as *mut YDApi)
-        }
-    }
-    pub fn get_config(&mut self, name: std::ffi::CString) -> *const std::os::raw::c_char {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getConfig)(self as *mut YDApi, name.as_ptr())
-        }
-    }
-    pub fn get_configs(&mut self, name: std::ffi::CString) -> *const YDQueryResult {
-        unsafe {
-            ((*(*self).vtable_).YDApi_getConfigs)(self as *mut YDApi, name.as_ptr())
-        }
-    }
-
-    /// encapsulate the raw pointer within YDApi
-    pub unsafe fn from_raw(api_ptr: *mut YDApi) -> Box<YDApi> {
+    /// encapsulate the raw pointer within CThostFtdcTraderApi
+    pub unsafe fn from_raw(api_ptr: *mut CThostFtdcTraderApi) -> Box<CThostFtdcTraderApi> {
         // Ensure the pointer is not null
         if api_ptr.is_null() {
-            panic!("YDApi pointer is null");
+            panic!("CThostFtdcTraderApi pointer is null");
         }
 
-        // Dereference the pointer to obtain YDApi and return it
-        // This assumes that YDApi can be directly obtained from the pointer
+        // Dereference the pointer to obtain CThostFtdcTraderApi and return it
+        // This assumes that CThostFtdcTraderApi can be directly obtained from the pointer
         // Adjust based on your actual struct layout
         Box::from_raw(api_ptr)
     }
 }
-unsafe impl Send for YDApi {}
-/* Param: yd_error_no_error *//* Param: yd_error_no_position_to_close *//* Param: yd_error_no_money_to_open *//* Param: yd_error_system_not_ready *//* Param: yd_error_invalid_instrument *//* Param: yd_error_invalid_account *//* Param: yd_error_order_field_error *//* Param: yd_error_memory_exceed *//* Param: yd_error_no_trading_code_in_exchange *//* Param: yd_error_can_not_send_to_exchange *//* Param: yd_error_no_trading_right *//* Param: yd_error_invalid_order_volume *//* Param: yd_error_invalid_client_app *//* Param: yd_error_position_limit_exceed *//* Param: yd_error_trade_volume_exceed *//* Param: yd_error_order_cancel_limit_exceed *//* Param: yd_error_order_open_limit_exceed *//* Param: yd_error_invalid_connection_id *//* Param: yd_error_already_logined *//* Param: yd_error_password_error *//* Param: yd_error_too_many_requests *//* Param: yd_error_invalid_username *//* Param: yd_error_username_mismatch *//* Param: yd_error_old_password_mismatch *//* Param: yd_error_insert_order_too_fast *//* Param: yd_error_possible_self_trade *//* Param: yd_error_no_admin_right *//* Param: yd_error_invalid_address *//* Param: yd_error_order_type_not_supported *//* Param: yd_error_cancel_order_field_error *//* Param: yd_error_invalid_exchange *//* Param: yd_error_order_not_found *//* Param: yd_error_order_not_belong_to_account *//* Param: yd_error_order_finished *//* Param: yd_error_only_limit_order_can_be_canceled *//* Param: yd_error_client_report_error *//* Param: yd_error_too_many_orders *//* Param: yd_error_instrument_can_not_trade *//* Param: yd_error_yd_order_flag_not_supported *//* Param: yd_error_not_option_instrument *//* Param: yd_error_price_out_of_limit *//* Param: yd_error_cross_price_in_quote *//* Param: yd_error_quote_field_error *//* Param: yd_error_quote_volume_error *//* Param: yd_error_quote_not_found *//* Param: yd_error_cancel_quote_field_error *//* Param: yd_error_quote_not_belong_to_account *//* Param: yd_error_quote_finished *//* Param: yd_error_quote_not_supported *//* Param: yd_error_cannot_cancel_quote_derived_order *//* Param: yd_error_too_many_logines *//* Param: yd_error_no_enough_positionto_make_comb_position *//* Param: yd_error_no_enough_comb_position *//* Param: yd_error_no_money_for_split_comb_position *//* Param: yd_error_invalid_comb_position *//* Param: yd_error_cannot_select_connection *//* Param: yd_error_select_connection_too_frequently *//* Param: yd_error_invalid_select_connection *//* Param: yd_error_too_low_api_version *//* Param: yd_error_invalid_trading_right *//* Param: yd_error_invalid_product *//* Param: yd_error_invalid_alter_money_field *//* Param: yd_error_too_high_api_version *//* Param: yd_error_money_usage_too_low *//* Param: yd_error_invalid_instrument_pair_to_execute_together *//* Param: yd_error_not_on_expire_day *//* Param: yd_error_not_proper_time *//* Param: yd_error_opton_long_position_cost_limit_exceed *//* Param: yd_error_price_to_trigger_fuse *//* Param: yd_error_exchange_does_not_support *//* Param: yd_error_not_cash_instrument *//* Param: yd_error_no_enough_positionto_freeze *//* Param: yd_error_no_enough_positionto_unfreeze *//* Param: yd_error_cannot_cover_long_position *//* Param: yd_error_not_enough_spot_position_for_cover *//* Param: yd_error_not_enough_position_for_cover_order *//* Param: yd_error_not_enough_money_for_cover_order *//* Param: yd_error_not_enough_spot_position_for_exec *//* Param: yd_error_invalid_order_ref *//* Param: yd_error_can_not_send_to_exchange_for_flow_control *//* Param: yd_error_exchange_connection_send_error *//* Param: yd_error_internal_rejected *//* Param: yd_error_cannot_set_trading_right *//* Param: yd_error_invalid_group_order_ref *//* Param: yd_error_invalid_order_group_id *//* Param: yd_error_no_login *//* Param: yd_error_invalid_account_margin_model_info_field *//* Param: yd_error_account_not_using_this_margin_model *//* Param: yd_error_cannot_use_comb_position_in_this_margin_model *//* Param: yd_error_too_many_cancels *//* Param: yd_error_message_count_exceed *//* Param: yd_error_direction_offset_flag_mismatch_in_order *//* Param: yd_error_price_tick_error *//* Param: yd_error_instrument_trading_paused *//* Param: yd_error_not_qualified_investor *//* Param: yd_error_not_tradable_product *//* Param: yd_error_holding_limit_exceed *//* Param: yd_error_cash_buy_volume_limit_exceed *//* Param: yd_error_cannot_update_holding_external_frozen *//* Param: yd_error_password_not_set *//* Param: yd_error_need_ignore *//* Param: yd_error_cannot_send *//* Param: yd_error_too_many_in_multi_orders *//* Param: yd_error_exchange_report_error */// FunctionPrototype: string2TimeID(const char *)
-// FunctionPrototype: string2TimeStamp(const char *)
-// FunctionPrototype: timeID2String(unsigned int, char *)
-// FunctionPrototype: timeStamp2String(unsigned int, char *)
-// FunctionPrototype: dumpField(FILE *, int)
-// FunctionPrototype: dumpField(FILE *, unsigned int)
-// FunctionPrototype: dumpField(FILE *, short)
-// FunctionPrototype: dumpField(FILE *, unsigned short)
-// FunctionPrototype: dumpField(FILE *, char)
-// FunctionPrototype: dumpField(FILE *, unsigned char)
-// FunctionPrototype: dumpField(FILE *, unsigned long long)
-// FunctionPrototype: dumpField(FILE *, long long)
-// FunctionPrototype: dumpField(FILE *, bool)
-// FunctionPrototype: dumpField(FILE *, double)
-// FunctionPrototype: dumpField(FILE *, const char *)
-// FunctionPrototype: dumpTimeField(FILE *, int)
-// FunctionPrototype: dumpTimeStampField(FILE *, int)
+unsafe impl Send for CThostFtdcTraderApi {}

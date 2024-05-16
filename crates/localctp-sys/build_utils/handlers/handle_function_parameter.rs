@@ -45,11 +45,11 @@ pub fn handle_function_parameter(
     } else {
         Inflector::to_snake_case(&entity.get_name().unwrap())
     };
-    console_debug!(
-        "handle_function_parameter {:?} {:?}",
-        entity_name,
-        entity_type.get_kind()
-    );
+    // console_debug!(
+    //     "handle_function_parameter {:?} {:?}",
+    //     entity_name,
+    //     entity_type.get_kind()
+    // );
 
     let parameter_str = match entity_type.get_kind() {
         TypeKind::Pointer => {

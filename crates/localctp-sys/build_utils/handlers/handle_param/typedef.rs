@@ -109,6 +109,106 @@ pub fn get_typedef_parameter(
             }
             ParameterFlavor::None => "/* i64 */".to_string(), // or "/* u64 */" if it's unsigned
         },
+        TypeKind::Double => match flavor {
+            ParameterFlavor::MethodCallParam
+            | ParameterFlavor::Rust
+            | ParameterFlavor::RustStruct => "f64".to_string(),
+            ParameterFlavor::SpiFn => "as f64".to_string(),
+            ParameterFlavor::UnsafeCheck => {
+                format!("/* No checking 15 {:?} */", underlying_type_kind)
+            }
+            ParameterFlavor::None => "/* double */".to_string(),
+        },
+        TypeKind::Float => match flavor {
+            ParameterFlavor::MethodCallParam
+            | ParameterFlavor::Rust
+            | ParameterFlavor::RustStruct => "f32".to_string(),
+            ParameterFlavor::SpiFn => "as f32".to_string(),
+            ParameterFlavor::UnsafeCheck => {
+                format!("/* No checking 21 {:?} */", underlying_type_kind)
+            }
+            ParameterFlavor::None => "/* float */".to_string(),
+        },
+        TypeKind::LongDouble => match flavor {
+            ParameterFlavor::MethodCallParam
+            | ParameterFlavor::Rust
+            | ParameterFlavor::RustStruct => "f64".to_string(), // or another appropriate type depending on the platform
+            ParameterFlavor::SpiFn => "as f64".to_string(),
+            ParameterFlavor::UnsafeCheck => {
+                format!("/* No checking 23 {:?} */", underlying_type_kind)
+            }
+            ParameterFlavor::None => "/* long double */".to_string(),
+        },
+        TypeKind::UInt => match flavor {
+            ParameterFlavor::MethodCallParam
+            | ParameterFlavor::Rust
+            | ParameterFlavor::RustStruct => "u32".to_string(),
+            ParameterFlavor::SpiFn => "as u32".to_string(),
+            ParameterFlavor::UnsafeCheck => {
+                format!("/* No checking 9 {:?} */", underlying_type_kind)
+            }
+            ParameterFlavor::None => "/* unsigned int */".to_string(),
+        },
+        TypeKind::Short => match flavor {
+            ParameterFlavor::MethodCallParam
+            | ParameterFlavor::Rust
+            | ParameterFlavor::RustStruct => "i16".to_string(),
+            ParameterFlavor::SpiFn => "as i16".to_string(),
+            ParameterFlavor::UnsafeCheck => {
+                format!("/* No checking 16 {:?} */", underlying_type_kind)
+            }
+            ParameterFlavor::None => "/* short */".to_string(),
+        },
+        TypeKind::UShort => match flavor {
+            ParameterFlavor::MethodCallParam
+            | ParameterFlavor::Rust
+            | ParameterFlavor::RustStruct => "u16".to_string(),
+            ParameterFlavor::SpiFn => "as u16".to_string(),
+            ParameterFlavor::UnsafeCheck => {
+                format!("/* No checking 8 {:?} */", underlying_type_kind)
+            }
+            ParameterFlavor::None => "/* unsigned short */".to_string(),
+        },
+        TypeKind::ULongLong => match flavor {
+            ParameterFlavor::MethodCallParam
+            | ParameterFlavor::Rust
+            | ParameterFlavor::RustStruct => "u64".to_string(),
+            ParameterFlavor::SpiFn => "as u64".to_string(),
+            ParameterFlavor::UnsafeCheck => {
+                format!("/* No checking 11 {:?} */", underlying_type_kind)
+            }
+            ParameterFlavor::None => "/* unsigned long long */".to_string(),
+        },
+        TypeKind::WChar => match flavor {
+            ParameterFlavor::MethodCallParam
+            | ParameterFlavor::Rust
+            | ParameterFlavor::RustStruct => "u16".to_string(),  // or "i32" depending on platform specifics
+            ParameterFlavor::SpiFn => "as u16".to_string(),
+            ParameterFlavor::UnsafeCheck => {
+                format!("/* No checking 15 {:?} */", underlying_type_kind)
+            }
+            ParameterFlavor::None => "/* wchar_t */".to_string(),
+        },
+        TypeKind::SChar => match flavor {
+            ParameterFlavor::MethodCallParam
+            | ParameterFlavor::Rust
+            | ParameterFlavor::RustStruct => "i8".to_string(),
+            ParameterFlavor::SpiFn => "as i8".to_string(),
+            ParameterFlavor::UnsafeCheck => {
+                format!("/* No checking 14 {:?} */", underlying_type_kind)
+            }
+            ParameterFlavor::None => "/* signed char */".to_string(),
+        },
+        TypeKind::UChar => match flavor {
+            ParameterFlavor::MethodCallParam
+            | ParameterFlavor::Rust
+            | ParameterFlavor::RustStruct => "u8".to_string(),
+            ParameterFlavor::SpiFn => "as u8".to_string(),
+            ParameterFlavor::UnsafeCheck => {
+                format!("/* No checking 5 {:?} */", underlying_type_kind)
+            }
+            ParameterFlavor::None => "/* unsigned char */".to_string(),
+        },        
         _ => panic!("Unhandled typedef type: {:?}", underlying_type.get_kind()),
     }
 }

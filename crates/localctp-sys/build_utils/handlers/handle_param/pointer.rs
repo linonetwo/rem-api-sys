@@ -16,10 +16,11 @@ pub fn get_pointer_parameter(
 ) -> String {
     let pointee_type = entity_type.get_pointee_type().unwrap();
     let flavor = &configs.parameter_flavor;
-    console_debug!("get_pointer_parameter {:?} {:?}", pointee_type, flavor,);
+    // console_debug!("get_pointer_parameter {:?} {:?}", pointee_type, flavor,);
     match pointee_type.get_kind() {
         TypeKind::CharS => match flavor {
-            ParameterFlavor::MethodCallParam => format!("{}.as_ptr()", name),
+            // 这个是char*, register_front() 会有这样的参数
+            ParameterFlavor::MethodCallParam => format!("{}.into_raw()", name),
             ParameterFlavor::Rust | ParameterFlavor::RustStruct => "std::ffi::CString".to_string(),
             ParameterFlavor::SpiFn => "*const std::os::raw::c_char".to_string(),
             ParameterFlavor::UnsafeCheck => "/* No checking 2 */".to_string(),
@@ -50,7 +51,7 @@ pub fn get_pointer_parameter(
         TypeKind::Record => {
             let decl = pointee_type.get_declaration().unwrap();
             let entity_name = get_full_name_of_entity(&decl);
-            console_debug!("TypeKind::Record {:?} {:?} {:?}", decl, entity_name, flavor,);
+            // console_debug!("TypeKind::Record {:?} {:?} {:?}", decl, entity_name, flavor,);
             match flavor {
                 ParameterFlavor::MethodCallParam => format!("&mut *{}", name),
                 ParameterFlavor::Rust => {

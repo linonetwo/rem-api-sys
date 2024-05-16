@@ -8,40 +8,39 @@
 mod generated;
 pub use generated::api_wrapper;
 pub use generated::bindings;
-use generated::bindings::{getYDVersion, makeYDApi, YDApi};
+use generated::bindings::CThostFtdcTraderApi_CreateFtdcTraderApi;
+use generated::bindings::CThostFtdcTraderSpi;
+use generated::bindings::{CThostFtdcTraderApi};
 pub use generated::spi_wrapper;
 
 mod ffi_utils;
 pub use ffi_utils::*;
 use generated::spi_wrapper::create_spi;
-use generated::spi_wrapper::YDListenerStream;
-use generated::spi_wrapper::YDListenerTrait;
+use generated::spi_wrapper::CThostFtdcTraderSpiStream;
 use std::ffi::{CStr, CString};
 
-pub fn create_yd_api(config_filename: &str) -> Box<YDApi> {
-    let cstr_config = CString::new(config_filename).unwrap();
-
-    // Call the unsafe function to create an instance of YDApi
-    let api_ptr = unsafe { makeYDApi(cstr_config.as_ptr()) };
-
-    // Ensure that api_ptr is not null
-    if api_ptr.is_null() {
-        panic!("Failed to create YDApi instance, get null pointer.");
+pub fn create_local_api(flow_path: &str) -> Box<CThostFtdcTraderApi> {
+    let trade_flow_path = std::ffi::CString::new(flow_path).unwrap();
+    unsafe {
+        Box::from_raw(CThostFtdcTraderApi_CreateFtdcTraderApi(
+            trade_flow_path.as_ptr(),
+        ))
     }
-
-    // Dereference the raw pointer to get YDApi and encapsulate it in the safe wrapper
-    // Assuming YDApi's constructor or a conversion method is available to encapsulate the raw pointer
-    unsafe { YDApi::from_raw(api_ptr) }
 }
 
-pub fn create_yd_api_and_spi(config_filename: &str) -> (Box<YDApi>, Box<YDListenerStream<'static>>) {
-    let mut api = create_yd_api(config_filename);
+pub fn create_local_api_and_spi(config_filename: &str) -> (Box<CThostFtdcTraderApi>, Box<CThostFtdcTraderSpiStream<'static>>) {
+    let mut api = create_local_api(config_filename);
 
     // Initialize the SPI and get the stream
-    let (spi_stream, spi_ptr) = create_spi();
+    let (spi_stream, mut spi_ptr) = create_spi();
 
-    // Register the SPI with the API
-    api.start(spi_ptr as *const dyn YDListenerTrait);
+    // Convert the raw pointer back to a mutable reference for `CThostFtdcTraderSpi`
+    // This assumes that `CThostFtdcTraderSpiStream` can be safely treated as `CThostFtdcTraderSpi`.
+    // This is a crucial assumption and needs to be validated.
+    unsafe {
+        let spi_ref = &mut *(spi_ptr as *mut CThostFtdcTraderSpi);  // Cast `*mut CThostFtdcTraderSpiStream` to `*mut CThostFtdcTraderSpi`
+        api.register_spi(spi_ref);
+    }
 
     (api, spi_stream)
 }

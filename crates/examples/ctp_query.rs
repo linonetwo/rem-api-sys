@@ -1,13 +1,8 @@
-use base::state::{
-    DirectionType, InputOrderActionField, InputOrderField, OffsetFlag, TraderApiType,
-};
-use base::util::get_ascii_str;
 use bincode::{config, Decode, Encode};
 use futures::StreamExt;
 use log::info;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
-use route;
 use std::ffi::{CStr, CString};
 use std::{io::Write, sync::Arc};
 use tokio::{
@@ -15,8 +10,8 @@ use tokio::{
     time::{self, Duration},
 };
 
+use localctp_sys::bindings::*;
 use localctp_sys::*;
-use rust_share_util::*;
 
 pub fn init_logger() {
     if std::env::var("RUST_LOG").is_err() {
@@ -61,51 +56,6 @@ async fn simulate_market_data(api: &mut CThostFtdcTraderApi) {
         if let Err(e) = api.insert_market_quote(market_quote) {
             eprintln!("Error inserting market quote: {:?}", e);
         }
-    }
-}
-
-async fn revoke_limit_order(api: &mut dyn TraderApiType, account_config: &CtpAccountConfig) {
-    // Define the necessary parameters for a limit order
-    let broker_id = &account_config.broker_id;
-    let account = &account_config.account;
-    let exchange = "SHFE"; // Shanghai Futures Exchange, adjust as needed
-    let symbol = "cu2101"; // Example futures contract for copper, adjust as needed
-    let price = 50000.0; // Example price, adjust as needed
-    let volume = 1; // Example volume, adjust as needed
-    let order_ref = 123; // This should be a unique reference for the order, possibly incrementing
-    let n_request_id = 1; // Request ID, unique per request
-
-    // Initialize the order input with default values
-    let order_input = InputOrderField {
-        direction: DirectionType::Long, // Buying, adjust as needed (Long or Short)
-        offset: OffsetFlag::Open,       // Order is to open a position, adjust as needed
-        price,
-        volume,
-    };
-
-    // Call the API to insert the order
-    println!("insert_limit_order request {:#?}", order_input);
-    let mut x_order_ref = [0i8; 13];
-    set_cstr_from_str_truncate_i8(&mut x_order_ref, format!("{order_ref}").as_str());
-    let input_order_action = InputOrderActionField {
-        front_id: 1,   // Example ID, should be set according to your system's management of IDs
-        session_id: 1, // Example Session ID
-        // order_ref: set_cstr_from_str_truncate_i8("your_order_ref"), // Your order reference
-        order_ref: x_order_ref,
-    };
-    let result = api.req_order_action(
-        "broker_id",
-        "account_id",
-        "exchange",
-        "symbol",
-        &input_order_action,
-        123, // order_action_ref, if applicable
-        1,   // n_request_id
-    );
-
-    match result {
-        Ok(_) => println!("Order action successfully requested."),
-        Err(e) => eprintln!("Failed to request order action: {:?}", e),
     }
 }
 
@@ -167,7 +117,8 @@ async fn main() {
     query(&account).await;
 }
 
-#[derive(Clone, Debug, Default, Encode, Decode)]
+// FIXME: the trait bound `localctp_sys::bindings::CThostFtdcDepthMarketDataField: Encode` is not satisfied
+#[derive(Clone, Debug, Default /* , Encode, Decode */)]
 pub struct CtpQueryResult {
     broker_id: String,
     account: String,
@@ -185,7 +136,6 @@ pub struct CtpQueryResult {
 }
 
 async fn query(ctp_account: &CtpAccountConfig) {
-    use localctp_sys::trader_api::*;
     let broker_id = ctp_account.broker_id.as_str();
     let account = ctp_account.account.as_str();
     let trade_front = ctp_account.trade_fronts[0].as_str();
@@ -201,20 +151,15 @@ async fn query(ctp_account: &CtpAccountConfig) {
     };
     let flow_path = format!(".cache/localctp_sys_trade_flow_{}_{}//", broker_id, account);
     check_make_dir(&flow_path);
-    let mut api_box = create_api(&flow_path, false);
-    let mut stream = {
-        let (stream, pp) = create_spi();
-        api_box.register_spi(pp);
-        stream
-    };
+    let (mut api_box, mut spi_stream) = create_local_api_and_spi(&flow_path);
     if name_server.len() > 0 {
         api_box.register_name_server(CString::new(name_server).unwrap());
     } else {
         api_box.register_front(CString::new(trade_front).unwrap());
         info!("register front {}", trade_front);
     }
-    api_box.subscribe_public_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
-    api_box.subscribe_private_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    api_box.subscribe_public_topic(localctp_sys::bindings::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    api_box.subscribe_private_topic(localctp_sys::bindings::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
     api_box.init();
     let mut result = CtpQueryResult::default();
     result.broker_id = broker_id.to_string();
@@ -226,8 +171,8 @@ async fn query(ctp_account: &CtpAccountConfig) {
     // set_cstr_from_str_truncate_i8(&mut login_req.UserID, &ctp_account.account);
     // set_cstr_from_str_truncate_i8(&mut login_req.Password, &ctp_account.password);
     // api_box.req_user_login(&mut login_req, 1);
-    while let Some(spi_msg) = stream.next().await {
-        use localctp_sys::trader_api::CThostFtdcTraderSpiOutput::*;
+    while let Some(spi_msg) = spi_stream.next().await {
+        use crate::spi_wrapper::CThostFtdcTraderSpiOutput::*;
         match spi_msg {
             OnFrontConnected(p) => {
                 info!("前端连接成功回报 OnFrontConnected");
@@ -261,7 +206,7 @@ async fn query(ctp_account: &CtpAccountConfig) {
     result.timestamp = chrono::Local::now().timestamp();
     info!("开始输入行情");
     // Wrap the API in Arc and Mutex for shared ownership and thread safety
-    let shared_api = Arc::new(Mutex::new(create_api(&flow_path, false)));
+    let shared_api = Arc::new(Mutex::new(api_box));
     // Clone the API handle for the spawned task
     let api_clone = shared_api.clone();
     tokio::spawn(async move {
@@ -274,57 +219,50 @@ async fn query(ctp_account: &CtpAccountConfig) {
     // Wait for 2 seconds after inserting the limit order
     time::sleep(Duration::from_secs(2)).await;
 
-    while let Some(spi_msg) = stream.next().await {
-        use localctp_sys::trader_api::CThostFtdcTraderSpiOutput::*;
+    while let Some(spi_msg) = spi_stream.next().await {
+        use crate::spi_wrapper::CThostFtdcTraderSpiOutput::*;
         match spi_msg {
             OnRtnOrder(p) => {
-                if let Some(order) = p.p_order {
-                    let broker_id = get_ascii_str(&order.BrokerID).unwrap_or("<invalid UTF-8>");
-                    let investor_id = get_ascii_str(&order.InvestorID).unwrap_or("<invalid UTF-8>");
-                    let exchange_id = get_ascii_str(&order.ExchangeID).unwrap_or("<invalid UTF-8>");
-                    let order_ref = get_ascii_str(&order.OrderRef).unwrap_or("<invalid UTF-8>");
-                    let instrument_id =
-                        get_ascii_str(&order.InstrumentID).unwrap_or("<invalid UTF-8>");
+                let order = &p.p_order;
+                let broker_id = get_ascii_str(&order.BrokerID).unwrap_or("<invalid UTF-8>");
+                let investor_id = get_ascii_str(&order.InvestorID).unwrap_or("<invalid UTF-8>");
+                let exchange_id = get_ascii_str(&order.ExchangeID).unwrap_or("<invalid UTF-8>");
+                let order_ref = get_ascii_str(&order.OrderRef).unwrap_or("<invalid UTF-8>");
+                let instrument_id = get_ascii_str(&order.InstrumentID).unwrap_or("<invalid UTF-8>");
 
-                    let order_status = match order.OrderStatus as u8 {
-                        THOST_FTDC_OST_AllTraded => "全部成交",
-                        THOST_FTDC_OST_PartTradedQueueing => "部分成交还在队列中",
-                        THOST_FTDC_OST_PartTradedNotQueueing => "部分成交不在队列中",
-                        THOST_FTDC_OST_NoTradeQueueing => "未成交还在队列中",
-                        THOST_FTDC_OST_NoTradeNotQueueing => "未成交不在队列中",
-                        THOST_FTDC_OST_Canceled => "已撤销",
-                        THOST_FTDC_OST_Unknown => "未知状态",
-                        THOST_FTDC_OST_NotTouched => "尚未触发",
-                        THOST_FTDC_OST_Touched => "已触发",
-                        _ => "其他状态",
-                    };
+                let order_status = match order.OrderStatus as u8 {
+                    THOST_FTDC_OST_AllTraded => "全部成交",
+                    THOST_FTDC_OST_PartTradedQueueing => "部分成交还在队列中",
+                    THOST_FTDC_OST_PartTradedNotQueueing => "部分成交不在队列中",
+                    THOST_FTDC_OST_NoTradeQueueing => "未成交还在队列中",
+                    THOST_FTDC_OST_NoTradeNotQueueing => "未成交不在队列中",
+                    THOST_FTDC_OST_Canceled => "已撤销",
+                    THOST_FTDC_OST_Unknown => "未知状态",
+                    THOST_FTDC_OST_NotTouched => "尚未触发",
+                    THOST_FTDC_OST_Touched => "已触发",
+                    _ => "其他状态",
+                };
 
-                    info!("报单成功回报 Order Return: BrokerID: {}, InvestorID: {}, ExchangeID: {}, OrderRef: {}, OrderStatus: {}, InstrumentID: {}", 
+                info!("报单成功回报 Order Return: BrokerID: {}, InvestorID: {}, ExchangeID: {}, OrderRef: {}, OrderStatus: {}, InstrumentID: {}", 
                           broker_id, investor_id, exchange_id, order_ref, order_status, instrument_id);
-                } else {
-                    info!("报单成功回报 Order Return: No order data available");
-                }
             }
             OnRspOrderInsert(p) => {
-                info!("报单失败回报 OnRspOrderInsert: {:?}", p);
+                info!("报单失败回报 OnRspOrderInsert");
             }
             OnRtnTrade(p) => {
-                if let Some(trade) = p.p_trade {
-                    let broker_id = get_ascii_str(&trade.BrokerID).unwrap_or("<invalid UTF-8>");
-                    let investor_id = get_ascii_str(&trade.InvestorID).unwrap_or("<invalid UTF-8>");
-                    let exchange_id = get_ascii_str(&trade.ExchangeID).unwrap_or("<invalid UTF-8>");
-                    let trade_id = get_ascii_str(&trade.TradeID).unwrap_or("<invalid UTF-8>");
-                    let order_ref = get_ascii_str(&trade.OrderRef).unwrap_or("<invalid UTF-8>");
-                    let instrument_id =
-                        get_ascii_str(&trade.InstrumentID).unwrap_or("<invalid UTF-8>");
-                    let price = trade.Price;
-                    let volume = trade.Volume;
+                let trade = &p.p_trade;
+                let broker_id = get_ascii_str(&trade.BrokerID).unwrap_or("<invalid UTF-8>");
+                let investor_id = get_ascii_str(&trade.InvestorID).unwrap_or("<invalid UTF-8>");
+                let exchange_id = get_ascii_str(&trade.ExchangeID).unwrap_or("<invalid UTF-8>");
+                let trade_id = get_ascii_str(&trade.TradeID).unwrap_or("<invalid UTF-8>");
+                let order_ref = get_ascii_str(&trade.OrderRef).unwrap_or("<invalid UTF-8>");
+                let instrument_id = get_ascii_str(&trade.InstrumentID).unwrap_or("<invalid UTF-8>");
+                let price = trade.Price;
+                let volume = trade.Volume;
 
-                    info!("成交回报 OnRtnTrade: OrderRef: {}, BrokerID: {}, InvestorID: {}, ExchangeID: {}, TradeID: {}, InstrumentID: {}, Price: {:.2}, Volume: {}",
+                info!("成交回报 OnRtnTrade: OrderRef: {}, BrokerID: {}, InvestorID: {}, ExchangeID: {}, TradeID: {}, InstrumentID: {}, Price: {:.2}, Volume: {}",
                           order_ref, broker_id, investor_id, exchange_id, trade_id, instrument_id, price, volume);
-                } else {
-                    info!("成交回报 OnRtnTrade: No trade data available");
-                }
+
                 // 这里有个 break，之后这个 while match 不再接收信息。（推荐将 SPI 放到单独线程）
                 break;
             }

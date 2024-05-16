@@ -28,6 +28,17 @@ pub fn ascii_cstr_to_str(s: &[u8]) -> Result<&str, SimpleError> {
     }
 }
 
+/// 省略一些ascii检查, 在能确保source是正常ascii的情况下使用
+pub fn get_ascii_str(source: &[i8]) -> Result<&str, SimpleError> {
+    let source = unsafe { std::slice::from_raw_parts(source.as_ptr() as *mut u8, source.len()) };
+    for i in 0..source.len() {
+        if source[i] == 0 {
+            return unsafe { Ok(std::str::from_utf8_unchecked(&source[0..i])) };
+        }
+    }
+    Err(SimpleError::new("ascii str should terminate with null"))
+}
+
 pub fn trading_day_from_ctp_trading_day(i: &[i8]) -> i32 {
     let d = ascii_cstr_to_str_i8(i);
     if d.is_err() {

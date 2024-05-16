@@ -213,7 +213,12 @@ async fn query(ctp_account: &CtpAccountConfig) {
         let mut api = api_clone.lock().await;
         simulate_market_data(&mut *api).await;
     });
-    let raw_api = api_box.as_mut();
+
+    // Now instead of trying to use `api_box`, use `shared_api`
+    // If you need a mutable reference from the original `shared_api`:
+    let mut raw_api_guard = shared_api.lock().await; // This will block until the mutex is available
+    let raw_api = raw_api_guard.as_mut(); // Now you have a mutable reference to use
+
     time::sleep(Duration::from_millis(200)).await;
     insert_limit_order(raw_api, ctp_account).await;
     // Wait for 2 seconds after inserting the limit order

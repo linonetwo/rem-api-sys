@@ -10,7 +10,7 @@ git submodule init && git submodule update --recursive && git submodule update -
 
 然后生成最新版的 CTP 动态链接库。
 
-生成 so 并复制到 `crates/localctp-sys/v_current` 文件夹里：
+生成 so 并复制到 `crates/localctp-sys/thirdparty/LocalCTP/v_current` 文件夹里：
 
 ```sh
 chmod +x scripts/build_localctp.sh && ./scripts/build_localctp.sh
@@ -25,8 +25,8 @@ cargo run --example ctp_query
 ### `error while loading shared libraries: libthostmduserapi_se.so: cannot open shared object file: No such file or directory`
 
 ```sh
-sudo ln -s crates/localctp-sys/v_current/libthosttraderapi_se.so /usr/local/lib/
-sudo ln -s crates/localctp-sys/v_current/libthostmduserapi_se.so /usr/local/lib/
+sudo ln -s crates/localctp-sys/thirdparty/LocalCTP/v_current/libthosttraderapi_se.so /usr/local/lib/
+sudo ln -s crates/localctp-sys/thirdparty/LocalCTP/v_current/libthostmduserapi_se.so /usr/local/lib/
 sudo ldconfig
 ```
 
@@ -34,8 +34,8 @@ sudo ldconfig
 
 ```sh
 rm /usr/local/lib/libthostmduserapi_se.so /usr/local/lib/libthosttraderapi_se.so
-sudo ln -s /root/localctp-sys/crates/localctp-sys/v_current/libthosttraderapi_se.so /usr/local/lib/
-sudo ln -s /root/localctp-sys/crates/localctp-sys/v_current/libthostmduserapi_se.so /usr/local/lib/
+sudo ln -s /root/localctp-sys/crates/localctp-sys/thirdparty/LocalCTP/v_current/libthosttraderapi_se.so /usr/local/lib/
+sudo ln -s /root/localctp-sys/crates/localctp-sys/thirdparty/LocalCTP/v_current/libthostmduserapi_se.so /usr/local/lib/
 sudo ldconfig
 ```
 

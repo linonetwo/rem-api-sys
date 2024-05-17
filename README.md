@@ -62,3 +62,9 @@ LogDebug("Entering ReqAuthenticate with request ID: " + std::to_string(nRequestI
 ```
 
 目前建议注释掉 LocalCTP/buildLinux.sh 里的 `buildFunc 6.3.19` 等行，只保留构建所需版本（例如 `6.7.0`）的行，以提高构建速度。
+
+## 发布
+
+```sh
+cargo test && cargo publish -p localctp-sys --registry crates-io
+```

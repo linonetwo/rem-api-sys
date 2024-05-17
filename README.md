@@ -2,6 +2,10 @@
 
 ## localctp-sys
 
+使用方法见[./crates/localctp-sys/README.md](./crates/localctp-sys/README.md)。
+
+## 构建
+
 使用 Git submodule 加载 `https://github.com/dearleeyoung/LocalCTP`
 
 ```sh

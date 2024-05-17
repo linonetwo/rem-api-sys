@@ -5,18 +5,18 @@
 #![allow(unused_variables, unused_mut)]
 #![allow(clippy::explicit_auto_deref)]
 
-mod generated;
+pub mod generated {
+    pub mod api_wrapper;
+    pub mod bindings;
+    pub mod spi_wrapper;
+}
+
 pub use generated::api_wrapper;
-pub use generated::bindings;
-use generated::bindings::*;
-pub use generated::spi_wrapper;
+pub use generated::bindings::*;
+pub use generated::spi_wrapper::*;
 
 mod ffi_utils;
 pub use ffi_utils::*;
-use generated::spi_wrapper::create_spi;
-use generated::spi_wrapper::CThostFtdcTraderSpiStream;
-
-use crate::bindings::CThostFtdcInputQuoteField;
 
 pub fn create_local_api(flow_path: &str) -> Box<CThostFtdcTraderApi> {
     let trade_flow_path = std::ffi::CString::new(flow_path).unwrap();

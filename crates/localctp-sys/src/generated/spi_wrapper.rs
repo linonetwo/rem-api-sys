@@ -3962,5 +3962,5 @@ impl<'a> CThostFtdcTraderSpiTrait<'a> for CThostFtdcTraderSpiStream<'a> {
         }))
     }
 }
-use crate::bindings::*;
+use crate::*;
 

@@ -10,7 +10,6 @@ use tokio::{
     time::{self, Duration},
 };
 
-use localctp_sys::bindings::*;
 use localctp_sys::*;
 
 pub fn init_logger() {
@@ -166,8 +165,8 @@ async fn query(ctp_account: &CtpAccountConfig) {
         info!("register front {}", trade_front);
     }
     debug!("register done");
-    api_box.subscribe_public_topic(localctp_sys::bindings::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
-    api_box.subscribe_private_topic(localctp_sys::bindings::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    api_box.subscribe_public_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
+    api_box.subscribe_private_topic(localctp_sys::THOST_TE_RESUME_TYPE_THOST_TERT_QUICK);
     debug!("subscribe topic done");
     api_box.init();
     debug!("init done");
@@ -182,7 +181,7 @@ async fn query(ctp_account: &CtpAccountConfig) {
     // set_cstr_from_str_truncate_i8(&mut login_req.Password, &ctp_account.password);
     // api_box.req_user_login(&mut login_req, 1);
     while let Some(spi_msg) = spi_stream.next().await {
-        use crate::spi_wrapper::CThostFtdcTraderSpiOutput::*;
+        use crate::CThostFtdcTraderSpiOutput::*;
         match spi_msg {
             OnFrontConnected(p) => {
                 info!("前端连接成功回报 OnFrontConnected");
@@ -235,7 +234,7 @@ async fn query(ctp_account: &CtpAccountConfig) {
     time::sleep(Duration::from_secs(2)).await;
 
     while let Some(spi_msg) = spi_stream.next().await {
-        use crate::spi_wrapper::CThostFtdcTraderSpiOutput::*;
+        use crate::CThostFtdcTraderSpiOutput::*;
         match spi_msg {
             OnRtnOrder(p) => {
                 let order = &p.p_order;

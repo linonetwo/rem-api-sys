@@ -105,7 +105,7 @@ fn generate_api_wrapper(entity: &Entity, handlers: &HandlerMap, generated_dir: &
     let mut configs = HandlerConfigs::default();
     configs.record_flavor = build_utils::handlers::handle_record::RecordFlavor::API;
     let mut lines: Vec<String> = Vec::new();
-    lines.push(format!("use crate::{{bindings::*}};\n\n"));
+    lines.push(format!("use crate::{{bindings::*, spi_wrapper::{{CThostFtdcTraderSpiTrait, C_THOST_FTDC_TRADER_SPI_VTABLE}}}};\n\n"));
     lines.extend(process_children(entity, handlers, &mut configs));
     let file_content = lines.join("");
     let file_path = generated_dir.join("api_wrapper.rs");

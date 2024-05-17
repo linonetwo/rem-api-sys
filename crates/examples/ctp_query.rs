@@ -101,6 +101,10 @@ async fn insert_limit_order(api: &mut dyn TraderApiType, account_config: &CtpAcc
 async fn main() {
     init_logger();
     info!("Start!");
+    let ver = unsafe { CStr::from_ptr(get_api_version()) }
+        .to_str()
+        .unwrap();
+    info!("version={ver}");
     // let trade_front = "tcp://180.168.146.187:10130"; // 7*24
     let account = CtpAccountConfig {
         broker_id: "9999".to_string(),
@@ -259,6 +263,7 @@ async fn query(ctp_account: &CtpAccountConfig) {
             }
             OnRspOrderInsert(p) => {
                 info!("报单失败回报 OnRspOrderInsert");
+                break;
             }
             OnRtnTrade(p) => {
                 let trade = &p.p_trade;
@@ -284,9 +289,5 @@ async fn query(ctp_account: &CtpAccountConfig) {
         }
     }
 
-    // let ver = unsafe { CStr::from_ptr(get_api_version()) }
-    //     .to_str()
-    //     .unwrap();
-    // info!("version={ver}");
     // api_box.release();
 }

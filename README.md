@@ -42,3 +42,23 @@ sudo ldconfig
 ### Order successfully inserted. 但实际上没有下单成功
 
 可能因为 `Rejected due to instrument not found`，可以把 `LocalCTP/TestLocalCTP/instrument.csv` 拖到项目根目录。
+
+## 排查绑定问题
+
+由于 LocalCTP 开源，可以直接在其源码内加入 Log 方法
+
+```c++
+void LogDebug(const std::string& msg)
+{
+    std::cout << msg << std::endl; // Replace this with your actual logging mechanism.
+}
+LogDebug("Entering ReqAuthenticate with request ID: " + std::to_string(nRequestID));
+```
+
+然后构建并运行示例
+
+```sh
+./scripts/build_localctp.sh && cargo run --example ctp_query
+```
+
+目前建议注释掉 LocalCTP/buildLinux.sh 里的 `buildFunc 6.3.19` 等行，只保留构建所需版本（例如 `6.7.0`）的行，以提高构建速度。

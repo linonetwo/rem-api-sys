@@ -62,6 +62,7 @@ pub fn handle_function_prototype(
             ..configs.clone()
         },
     );
+    let full_api_record_name = format!("{record_name}_{raw_camel_case_name}");
     match configs.method_flavor {
         MethodFlavor::SpiTrait => {
             let config_for_children = &mut HandlerConfigs {
@@ -116,6 +117,26 @@ pub fn handle_function_prototype(
                 ));
                 return lines;
             }
+            if raw_camel_case_name == "RegisterSpi" {
+                /*
+                 * 注册 SPI 需要特别的姿势，不然无法正常调用 vtable，会直接崩溃
+                 */
+                let static_vtable_var_name = "C_THOST_FTDC_TRADER_SPI_VTABLE"; /* Inflector::to_snake_case(&full_api_name).trim_end_matches.to_uppercase() + "SPI_VTABLE"; */
+                let fn_call_cast = "p_spi as * mut CThostFtdcTraderSpi";
+                let code = format!(
+                    r#"
+    pub fn {snake_fn_name}(&mut self, p_spi: *const dyn CThostFtdcTraderSpiTrait) -> () {{
+        let p_spi = Box::into_raw(Box::new(( &{static_vtable_var_name}, p_spi)));            
+        unsafe {{
+            ((*(*self).vtable_).{full_api_record_name})(self as *mut {record_name}, {fn_call_cast})
+        }}
+    }}
+
+"#,
+                );
+                lines.push(code);
+                return lines;
+            }
             lines.push(format!("{}pub fn {snake_fn_name}(&mut self", *INDENT));
             if !child_lines_rs.is_empty() {
                 lines.push(format!(", "));
@@ -123,7 +144,6 @@ pub fn handle_function_prototype(
             lines.extend(child_lines_rs);
             let c_result_type = entity.get_result_type().unwrap().get_display_name();
             let rust_result_type = get_rs_result_type_from_c_result_type(&c_result_type);
-            let full_api_record_name = format!("{record_name}_{raw_camel_case_name}");
             let child_lines_c_method_call_param = process_children(
                 entity,
                 handlers,

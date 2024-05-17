@@ -27,6 +27,10 @@ pub fn create_local_api(flow_path: &str) -> Box<CThostFtdcTraderApi> {
     }
 }
 
+pub fn get_api_version() -> *const std::os::raw::c_char {
+    unsafe { CThostFtdcTraderApi_GetApiVersion() }
+}
+
 pub fn create_local_api_and_spi(
     flow_path: &str,
 ) -> (
@@ -36,17 +40,13 @@ pub fn create_local_api_and_spi(
     let mut api = create_local_api(flow_path);
 
     // Initialize the SPI and get the stream
-    let (spi_stream, mut spi_ptr) = create_spi();
+    let mut stream = {
+        let (stream, pp) = create_spi();
+        api.register_spi(pp);
+        stream
+    };
 
-    // Convert the raw pointer back to a mutable reference for `CThostFtdcTraderSpi`
-    // This assumes that `CThostFtdcTraderSpiStream` can be safely treated as `CThostFtdcTraderSpi`.
-    // This is a crucial assumption and needs to be validated.
-    unsafe {
-        let spi_ref = &mut *(spi_ptr as *mut CThostFtdcTraderSpi); // Cast `*mut CThostFtdcTraderSpiStream` to `*mut CThostFtdcTraderSpi`
-        api.register_spi(spi_ref);
-    }
-
-    (api, spi_stream)
+    (api, stream)
 }
 
 #[derive(Debug, Clone)]

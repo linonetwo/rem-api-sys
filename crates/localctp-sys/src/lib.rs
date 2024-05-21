@@ -18,7 +18,12 @@ pub use generated::spi_wrapper::*;
 mod ffi_utils;
 pub use ffi_utils::*;
 
-pub fn create_local_api(flow_path: &str) -> Box<CThostFtdcTraderApi> {
+pub fn create_api(
+    flow_path: &str,
+    // useless param that is compatible with openctp
+    _is_using_udp: bool,
+    // _is_multicast: bool,
+) -> Box<CThostFtdcTraderApi> {
     let trade_flow_path = std::ffi::CString::new(flow_path).unwrap();
     unsafe {
         Box::from_raw(CThostFtdcTraderApi_CreateFtdcTraderApi(
@@ -37,7 +42,7 @@ pub fn create_local_api_and_spi(
     Box<CThostFtdcTraderApi>,
     Box<CThostFtdcTraderSpiStream<'static>>,
 ) {
-    let mut api = create_local_api(flow_path);
+    let mut api = create_api(flow_path, false);
 
     // Initialize the SPI and get the stream
     let mut stream = {
@@ -113,7 +118,6 @@ impl CThostFtdcTraderApi {
     }
 }
 
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum DirectionType {
     Long = 0,
@@ -159,7 +163,6 @@ pub struct InputOrderActionField {
     pub order_ref: [i8; 13],
 }
 
-
 #[derive(Clone, Debug, Default)]
 pub struct ShareholderAccount {
     pub investor_id: String,
@@ -188,7 +191,6 @@ pub enum Error {
     ShareholderAccountNotFound,
 }
 
-
 pub trait TraderApiType {
     fn req_order_insert(
         &mut self,
@@ -212,7 +214,6 @@ pub trait TraderApiType {
         n_request_id: i32,
     ) -> Result<(), Error>;
 }
-
 
 impl TraderApiType for CThostFtdcTraderApi {
     fn req_order_insert(

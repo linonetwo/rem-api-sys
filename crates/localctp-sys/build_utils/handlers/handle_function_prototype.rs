@@ -231,8 +231,7 @@ pub fn handle_function_prototype(
             configs.life_time_on_children = false;
             lines.push(format!(
                 r#"
-#[allow(unused_lifetimes)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct {packet_name_prefix}Packet{life_time_param_on_parent} {{
 "#
             ));

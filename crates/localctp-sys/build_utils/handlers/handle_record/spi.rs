@@ -262,7 +262,7 @@ impl<'a> {full_spi_name}Inner<'a> {{
     }}
 }}
 
-pub struct {full_spi_name}Stream<'a> {{
+pub struct {full_spi_name}Stream<'a: 'static> {{
     inner: Arc<Mutex<{full_spi_name}Inner<'a>>>,
 }}
 

@@ -15,7 +15,7 @@ fn main() {
 
     // Target directory for the system-specific crate
     let localctp_sys_path = "./crates/localctp-sys/thirdparty/LocalCTP/v_current";
-    let lib_dst_path = format!("{}/libthosttraderapi_se.so", localctp_sys_path);
+    let lib_dst_path = format!("{}/libthosttraderapi_se_local.so", localctp_sys_path);
 
     // Build the LocalCTP project
     println!("Running build script for LocalCTP...");
@@ -41,7 +41,7 @@ fn main() {
         "ThostFtdcMdApi.h", "ThostFtdcUserApiDataType.h", "error.dtd",
         "libthostmduserapi_se.so", "thostmduserapi_se.dll", "thosttraderapi_se.dll",
         "ThostFtdcTraderApi.h", "ThostFtdcUserApiStruct.h", "error.xml",
-        "libthosttraderapi_se.so", "thostmduserapi_se.lib", "thosttraderapi_se.lib",
+        "libthosttraderapi_se_local.so", "thostmduserapi_se.lib", "thosttraderapi_se.lib",
     ];
 
     for file_name in file_names.iter() {

@@ -30,16 +30,14 @@ cargo run --example ctp_query
 
 ```sh
 sudo ln -s crates/localctp-sys/thirdparty/LocalCTP/v_current/libthosttraderapi_se.so /usr/local/lib/
-sudo ln -s crates/localctp-sys/thirdparty/LocalCTP/v_current/libthostmduserapi_se.so /usr/local/lib/
 sudo ldconfig
 ```
 
 如果还有问题，尝试用绝对路径。以下绝对路径仅供参考，需要自己修改：
 
 ```sh
-rm /usr/local/lib/libthostmduserapi_se.so /usr/local/lib/libthosttraderapi_se.so
-sudo ln -s /root/localctp-sys/crates/localctp-sys/thirdparty/LocalCTP/v_current/libthosttraderapi_se.so /usr/local/lib/
-sudo ln -s /root/localctp-sys/crates/localctp-sys/thirdparty/LocalCTP/v_current/libthostmduserapi_se.so /usr/local/lib/
+rm /usr/local/lib/libthosttraderapi_se_local.so
+sudo ln -s /root/localctp-sys/crates/localctp-sys/thirdparty/LocalCTP/v_current/libthosttraderapi_se_local.so /usr/local/lib/
 sudo ldconfig
 ```
 
@@ -65,7 +63,9 @@ LogDebug("Entering ReqAuthenticate with request ID: " + std::to_string(nRequestI
 ./scripts/build_localctp.sh && cargo run --example ctp_query
 ```
 
-目前建议注释掉 LocalCTP/buildLinux.sh 里的 `buildFunc 6.3.19` 等行，只保留构建所需版本（例如 `6.7.0`）的行，以提高构建速度。
+目前建议注释掉 LocalCTP/buildLinux.sh 里的 `buildFunc 6.3.19` 等行，只保留构建所需版本（例如 `6.7.0`）的行 `buildFunc 6.7.0`，以提高构建速度。
+
+注意要注释掉底部的 mv 语句，不然会找不到 so。
 
 ## 发布
 

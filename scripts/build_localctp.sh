@@ -14,7 +14,7 @@ mkdir -p "${LOCALCTP_SYS_PATH}"
 
 # Move the specific version of the shared library
 echo "Moving shared library..."
-mv "${LOCAL_CTP_PATH}/bin/linux/libthosttraderapi_se_v${VERSION}.so" "${LOCALCTP_SYS_PATH}/libthosttraderapi_se.so"
+mv "${LOCAL_CTP_PATH}/bin/linux/libthosttraderapi_se_v${VERSION}.so" "${LOCALCTP_SYS_PATH}/libthosttraderapi_se_local.so"
 
 # Copy the CTP header and XML/DTD files
 echo "Copying CTP files from version ${VERSION}..."

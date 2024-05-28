@@ -67,7 +67,7 @@ fn generate_type(generated_dir: &Path) {
 
     println!("cargo:rustc-link-search=native={}", lib_path.display());
     println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib_path.display());
-    println!("cargo:rustc-link-lib=thosttraderapi_se");
+    println!("cargo:rustc-link-lib=thosttraderapi_se_local");
 
     let wrapper_header_path = THIRD_PARTY_PROJECT_DIR
         .join("wrapper.hpp")

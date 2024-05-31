@@ -1,20 +1,12 @@
-# LocalCTP Rust
+# 盛立 CTP 柜台接口 Rust
 
-## localctp-sys
+## rem-super-api-sys
 
-使用方法见[./crates/localctp-sys/README.md](./crates/localctp-sys/README.md)。
+使用方法见[./crates/rem-super-api-sys/README.md](./crates/rem-super-api-sys/README.md)。
 
 ## 构建
 
-使用 Git submodule 加载 `https://github.com/dearleeyoung/LocalCTP`
-
-```sh
-git submodule init && git submodule update --recursive && git submodule update --remote
-```
-
-然后生成最新版的 CTP 动态链接库。
-
-生成 so 并复制到 `crates/localctp-sys/thirdparty/LocalCTP/v_current` 文件夹里：
+将柜台的 SDK 复制到 `crates/rem-super-api-sys/thirdparty/rem_super_api/lib` 文件夹里：
 
 ```sh
 chmod +x scripts/build_localctp.sh && ./scripts/build_localctp.sh
@@ -29,7 +21,7 @@ cargo run --example ctp_query
 ### `error while loading shared libraries: libthostmduserapi_se.so: cannot open shared object file: No such file or directory`
 
 ```sh
-sudo ln -s crates/localctp-sys/thirdparty/LocalCTP/v_current/libthosttraderapi_se.so /usr/local/lib/
+sudo ln -s crates/rem-super-api-sys/thirdparty/rem_super_api/lib/libthosttraderapi_se.so /usr/local/lib/
 sudo ldconfig
 ```
 
@@ -37,7 +29,7 @@ sudo ldconfig
 
 ```sh
 rm /usr/local/lib/libthosttraderapi_se_local.so
-sudo ln -s /root/localctp-sys/crates/localctp-sys/thirdparty/LocalCTP/v_current/libthosttraderapi_se_local.so /usr/local/lib/
+sudo ln -s /root/rem-super-api-sys/crates/rem-super-api-sys/thirdparty/rem_super_api/lib/libthosttraderapi_se_local.so /usr/local/lib/
 sudo ldconfig
 ```
 
@@ -45,30 +37,8 @@ sudo ldconfig
 
 可能因为 `Rejected due to instrument not found`，可以把 `LocalCTP/TestLocalCTP/instrument.csv` 拖到项目根目录。
 
-## 排查绑定问题
-
-由于 LocalCTP 开源，可以直接在其源码内加入 Log 方法
-
-```c++
-void LogDebug(const std::string& msg)
-{
-    std::cout << msg << std::endl; // Replace this with your actual logging mechanism.
-}
-LogDebug("Entering ReqAuthenticate with request ID: " + std::to_string(nRequestID));
-```
-
-然后构建并运行示例
-
-```sh
-./scripts/build_localctp.sh && cargo run --example ctp_query
-```
-
-目前建议注释掉 LocalCTP/buildLinux.sh 里的 `buildFunc 6.3.19` 等行，只保留构建所需版本（例如 `6.7.0`）的行 `buildFunc 6.7.0`，以提高构建速度。
-
-注意要注释掉底部的 mv 语句，不然会找不到 so。
-
 ## 发布
 
 ```sh
-cargo test && cargo publish -p localctp-sys --registry crates-io
+cargo test && cargo publish -p rem-super-api-sys --registry crates-io
 ```
